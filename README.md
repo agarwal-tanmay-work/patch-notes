@@ -1,36 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Patch Notes 📝
 
-## Getting Started
+**Patch Notes** is a developer utility that helps you keep coding tutorials up to date. It compares a tutorial video's claims with current official documentation, highlighting outdated API usages, deprecated functions, and syntax changes side-by-side.
 
-First, run the development server:
+Built for **Localhost:6767 — Supermemory Local Hackathon (July 9–13)**.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## 🚀 How it Works
+
+1. **Ingest Video & Docs**: Provide a YouTube video URL and paste the latest official documentation text.
+2. **Local Graph Integration**:
+   - The video is indexed and transcribed by the local **Supermemory Server** container.
+   - The documentation is parsed and indexed in the same **containerTag** (acting as a topic boundary).
+3. **Semantic Extraction**:
+   - We query the Supermemory local engine using hybrid search and profile retrieval to extract all facts from both sources.
+4. **Delta Comparison**:
+   - An LLM (Gemini) compares the extracted facts, identifying outdated video claims, highlighting the current truth, and showing a side-by-side code diff.
+
+---
+
+## 🛠️ Architecture
+
+```
+                      +-------------------+
+                      |   User Browser    |
+                      +---------+---------+
+                                |
+                                | HTTP JSON
+                                v
+                      +---------+---------+
+                      |  Next.js App      |
+                      +----+---------+----+
+                           |         |
+      Supermemory SDK      |         | REST API
+      (port 6767)          |         | (with GEMINI_API_KEY)
+                           v         v
+                +----------+--+   +--+----------+
+                | Supermemory |   | Gemini API  |
+                |   Server    |   |  (LLM)      |
+                |  (Docker)   |   +-------------+
+                +-------------+
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📦 Getting Started
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Run Supermemory Local (Docker)
 
-## Learn More
+Since Windows is not natively supported by the official Supermemory shell script, we run it containerized. 
 
-To learn more about Next.js, take a look at the following resources:
+Build and run the container:
+```bash
+# 1. Build the Docker image
+docker build -t supermemory-local ./scratch
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# 2. Start the container with your Gemini API key
+docker run -d --name supermemory-server -p 6767:6767 -v supermemory-data:/root/.supermemory -e GEMINI_API_KEY="your_api_key_here" supermemory-local
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+On first startup, the server automatically downloads the local embeddings model `Xenova/bge-base-en-v1.5` and listens on `http://localhost:6767`. 
 
-## Deploy on Vercel
+Check the logs to grab the generated **API key**:
+```bash
+docker logs supermemory-server
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 2. Configure Next.js Application
+
+1. Clone the repository and navigate into it:
+   ```bash
+   cd patch-notes
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env.local` file in the root of the project with the following:
+   ```env
+   SUPERMEMORY_API_KEY=sm_your_supermemory_api_key_here
+   SUPERMEMORY_BASE_URL=http://localhost:6767
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+
+---
+
+### 3. Run the App
+
+Start the development server:
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 💎 Demo Presets Included
+
+The UI includes ready-to-use presets so you can test the analysis workflow instantly:
+1. **React Router v6 Redirects**: Compares obsolete `<Redirect>` syntax with current `<Navigate>` and the `useNavigate` hook.
+2. **Next.js Navigation (App Router)**: Compares Pages Router `next/router` imports with App Router `next/navigation` imports.
+3. **Supermemory JS SDK**: Compares old `client.memories.add` method with modern `client.add`.
+
+---
+
+## 🛡️ License
+
+MIT
