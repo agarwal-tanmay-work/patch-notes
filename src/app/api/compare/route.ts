@@ -49,13 +49,18 @@ export async function GET(request: Request) {
 
       // Extract source from item metadata or nested document metadata
       let source = item.metadata?.source;
-      if (!source && item.documents && item.documents.length > 0) {
-        source = item.documents[0].metadata?.source;
+      let type = item.type;
+      let mimeType = item.metadata?.mimeType;
+
+      if (item.documents && item.documents.length > 0) {
+        if (!source) source = item.documents[0].metadata?.source;
+        if (!type) type = item.documents[0].type;
+        if (!mimeType) mimeType = item.documents[0].metadata?.mimeType;
       }
 
       if (source === "documentation") {
         docFacts.push(text);
-      } else if (source === "video") {
+      } else if (source === "video" || type === "video" || (mimeType && mimeType.startsWith("video/"))) {
         videoFacts.push(text);
       } else {
         // Fallback: search if text mentions video or doc, or add to both as context

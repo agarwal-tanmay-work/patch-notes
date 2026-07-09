@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { 
   Play, 
   FileText, 
@@ -9,15 +9,19 @@ import {
   Code, 
   ChevronRight, 
   Sparkles, 
-  RefreshCw, 
+  Clock,
   ArrowLeft,
   Info,
-  Clock,
   Terminal,
   ShieldCheck,
   FileCode,
-  Gauge
+  Gauge,
+  Upload,
+  Link,
+  Download,
+  AlertCircle
 } from "lucide-react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Demo data presets
 const DEMO_PRESETS = [
@@ -109,12 +113,14 @@ await client.add({
   }
 ];
 
-export default function Home() {
+function HomeContent() {
   // Navigation & Page State
   const [step, setStep] = useState<"input" | "loading" | "compare">("input");
   
   // Ingestion Input Form
+  const [videoInputType, setVideoInputType] = useState<"url" | "file">("url");
   const [videoUrl, setVideoUrl] = useState("");
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [docText, setDocText] = useState("");
   const [topicName, setTopicName] = useState("");
   
@@ -133,7 +139,9 @@ export default function Home() {
 
   // Load a preset
   const loadPreset = (preset: typeof DEMO_PRESETS[0]) => {
+    setVideoInputType("url");
     setVideoUrl(preset.videoUrl);
+    setVideoFile(null);
     setDocText(preset.docText);
     setTopicName(preset.name);
   };
@@ -141,8 +149,16 @@ export default function Home() {
   // Start Ingestion
   const handleStartIngestion = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!videoUrl || !docText) {
-      setErrorMessage("Please provide both a YouTube URL and Documentation text.");
+    if (videoInputType === "url" && !videoUrl) {
+      setErrorMessage("Please provide a YouTube video URL.");
+      return;
+    }
+    if (videoInputType === "file" && !videoFile) {
+      setErrorMessage("Please select a video file to upload.");
+      return;
+    }
+    if (!docText) {
+      setErrorMessage("Please provide Documentation text.");
       return;
     }
     
@@ -153,10 +169,19 @@ export default function Home() {
     setDocStatus("queued");
 
     try {
+      const formData = new FormData();
+      formData.append("docText", docText);
+      formData.append("topicName", topicName);
+      
+      if (videoInputType === "file" && videoFile) {
+        formData.append("videoFile", videoFile);
+      } else {
+        formData.append("videoUrl", videoUrl);
+      }
+
       const res = await fetch("/api/ingest", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ videoUrl, docText, topicName }),
+        body: formData,
       });
       
       const data = await res.json();
@@ -245,6 +270,37 @@ export default function Home() {
     }
   };
 
+  // Export Results to Markdown
+  const handleExportMarkdown = () => {
+    let md = `# Patch Notes Compatibility Report: ${topicName || "Topic"}\n\n`;
+    md += `**Compatibility Score:** ${compatibilityScore}%\n\n`;
+    md += `## Summary\n${summary}\n\n`;
+    md += `## Delta Comparison Details\n\n`;
+    
+    comparisons.forEach((item, index) => {
+      md += `### ${index + 1}. [${item.severity.toUpperCase()}] Outdated Claim\n\n`;
+      md += `* **Video Claim:** ${item.claim}\n`;
+      md += `* **Current Documentation Truth:** ${item.truth}\n\n`;
+      md += `#### Explanation & Impact\n${item.explanation}\n\n`;
+      
+      if (item.oldCode) {
+        md += `#### Outdated Code\n\`\`\`typescript\n${item.oldCode}\n\`\`\`\n\n`;
+      }
+      if (item.newCode) {
+        md += `#### Correct Code\n\`\`\`typescript\n${item.newCode}\n\`\`\`\n\n`;
+      }
+      md += `---\n\n`;
+    });
+
+    const blob = new Blob([md], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(topicName || "patch-notes").toLowerCase().replace(/\s+/g, "-")}-report.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const filteredComparisons = comparisons.filter(c => {
     if (activeSeverityFilter === "all") return true;
     return c.severity === activeSeverityFilter;
@@ -324,20 +380,81 @@ export default function Home() {
                   <Terminal className="h-4 w-4 text-violet-400" /> Start Analysis
                 </h2>
                 <form onSubmit={handleStartIngestion} className="space-y-6">
+                  
+                  {/* Video Input Type Toggle */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-300 flex items-center gap-1.5">
-                      <Play className="h-4 w-4 text-rose-400" /> YouTube Tutorial Video URL
+                    <label className="text-sm font-medium text-zinc-300">
+                      Tutorial Video Source
                     </label>
-                    <input 
-                      type="url"
-                      placeholder="e.g. https://www.youtube.com/watch?v=..."
-                      value={videoUrl}
-                      onChange={(e) => setVideoUrl(e.target.value)}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
-                      required
-                    />
+                    <div className="flex gap-2 p-1 bg-zinc-950 border border-zinc-850 rounded-xl max-w-xs">
+                      <button
+                        type="button"
+                        onClick={() => setVideoInputType("url")}
+                        className={`flex-1 py-2 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                          videoInputType === "url" ? "bg-zinc-900 text-white" : "text-zinc-400 hover:text-zinc-300"
+                        }`}
+                      >
+                        <Link className="h-3.5 w-3.5" /> YouTube URL
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVideoInputType("file")}
+                        className={`flex-1 py-2 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                          videoInputType === "file" ? "bg-zinc-900 text-white" : "text-zinc-400 hover:text-zinc-300"
+                        }`}
+                      >
+                        <Upload className="h-3.5 w-3.5" /> Upload File
+                      </button>
+                    </div>
                   </div>
 
+                  {/* Video Input Options */}
+                  {videoInputType === "url" ? (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-300 flex items-center gap-1.5">
+                        <Play className="h-4 w-4 text-rose-400" /> YouTube Tutorial Video URL
+                      </label>
+                      <input 
+                        type="url"
+                        placeholder="e.g. https://www.youtube.com/watch?v=..."
+                        value={videoUrl}
+                        onChange={(e) => setVideoUrl(e.target.value)}
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
+                        required={videoInputType === "url"}
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-300 flex items-center gap-1.5">
+                        <Upload className="h-4 w-4 text-rose-400" /> Upload Local Video File (MP4, WebM)
+                      </label>
+                      <div className="border-2 border-dashed border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 rounded-xl p-6 transition flex flex-col items-center justify-center text-center gap-2 cursor-pointer relative">
+                        <input
+                          type="file"
+                          accept="video/*"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                          required={videoInputType === "file"}
+                        />
+                        <div className="p-2.5 bg-zinc-900 border border-zinc-850 rounded-full">
+                          <Play className="h-5 w-5 text-zinc-400" />
+                        </div>
+                        {videoFile ? (
+                          <div className="space-y-1">
+                            <p className="text-sm font-bold text-violet-400">{videoFile.name}</p>
+                            <p className="text-xs text-zinc-500">{(videoFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium text-zinc-300">Click or drag a file to upload</p>
+                            <p className="text-xs text-zinc-500">Maximum size 100MB</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Documentation Input */}
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-zinc-300 flex items-center gap-1.5">
                       <FileText className="h-4 w-4 text-violet-400" /> Current Documentation (Markdown / Text)
@@ -352,6 +469,7 @@ export default function Home() {
                     />
                   </div>
 
+                  {/* Topic name */}
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-zinc-300">
                       Topic Name (Optional)
@@ -403,7 +521,7 @@ export default function Home() {
                     <Info className="h-4 w-4 text-violet-400" /> Under the Hood
                   </h4>
                   <ul className="text-xs text-zinc-400 space-y-2 list-disc list-inside">
-                    <li>Indexes video url dynamically into local instance.</li>
+                    <li>Indexes video files & URL contexts locally.</li>
                     <li>Saves documentation markdown chunks.</li>
                     <li>Links items in the same containerTag.</li>
                     <li>Extracts delta claims via semantic search.</li>
@@ -417,7 +535,7 @@ export default function Home() {
 
         {/* STEP 2: INGESTION LOADER */}
         {step === "loading" && (
-          <div className="max-w-xl mx-auto w-full bg-zinc-900/40 border border-zinc-900 rounded-3xl p-8 text-center space-y-8 animate-pulse">
+          <div className="max-w-xl mx-auto w-full bg-zinc-900/40 border border-zinc-900 rounded-3xl p-8 text-center space-y-8">
             
             <div className="flex justify-center">
               <div className="relative h-16 w-16">
@@ -441,7 +559,7 @@ export default function Home() {
                   {videoStatus === "done" && <CheckCircle className="h-3 w-3 text-emerald-400" />}
                   {videoStatus === "queued" && <Clock className="h-3 w-3 text-zinc-500 animate-spin" />}
                   {videoStatus === "failed" && <AlertTriangle className="h-3 w-3 text-rose-500" />}
-                  {videoStatus}
+                  {videoStatus === "done" ? "done" : "processing"}
                 </span>
               </div>
 
@@ -453,7 +571,7 @@ export default function Home() {
                   {docStatus === "done" && <CheckCircle className="h-3 w-3 text-emerald-400" />}
                   {docStatus === "queued" && <Clock className="h-3 w-3 text-zinc-500 animate-spin" />}
                   {docStatus === "failed" && <AlertTriangle className="h-3 w-3 text-rose-500" />}
-                  {docStatus}
+                  {docStatus === "done" ? "done" : "processing"}
                 </span>
               </div>
             </div>
@@ -468,7 +586,7 @@ export default function Home() {
         {step === "compare" && (
           <div className="space-y-8 animate-fade-in">
             
-            {/* Top Bar with Go Back */}
+            {/* Top Bar with Actions */}
             <div className="flex items-center justify-between">
               <button 
                 onClick={() => setStep("input")}
@@ -476,8 +594,17 @@ export default function Home() {
               >
                 <ArrowLeft className="h-4 w-4" /> Start Over
               </button>
-              <div className="text-xs text-zinc-400 font-mono">
-                Topic Tag: {topicId}
+              
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleExportMarkdown}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-violet-600 hover:bg-violet-500 text-white transition cursor-pointer"
+                >
+                  <Download className="h-4 w-4" /> Export Report
+                </button>
+                <div className="text-xs text-zinc-500 font-mono hidden sm:block">
+                  Tag: {topicId}
+                </div>
               </div>
             </div>
 
@@ -657,5 +784,13 @@ export default function Home() {
         <p>© 2026 Patch Notes. Powered by Supermemory Local Server and Gemini 1.5 Flash.</p>
       </footer>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <ErrorBoundary>
+      <HomeContent />
+    </ErrorBoundary>
   );
 }
