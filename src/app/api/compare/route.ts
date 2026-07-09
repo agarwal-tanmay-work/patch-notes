@@ -121,7 +121,7 @@ Format your output as a JSON object matching this structure EXACTLY:
 Ensure the output is valid JSON. Do not include markdown code block formatting (like \`\`\`json) in the response. Return ONLY the raw JSON string.
 `;
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
     const response = await fetch(geminiUrl, {
       method: "POST",
       headers: {
