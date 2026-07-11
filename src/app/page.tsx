@@ -130,7 +130,7 @@ await client.add({
 function GraphView({ graph }: { graph: any }) {
   if (!graph || !graph.nodes || graph.nodes.length === 0) {
     return (
-      <div className="p-8 text-center text-[#767676] text-xs bg-[#f2e8fa] border border-[#333333] rounded-2xl">
+      <div className="p-8 text-center text-[#6b7280] text-xs bg-[#f9fafb] border border-[#333333] rounded-2xl">
         No graph representation available for this comparison.
       </div>
     );
@@ -174,29 +174,29 @@ function GraphView({ graph }: { graph: any }) {
   const getNodeColor = (type: string) => {
     switch (type) {
       case "topic":
-        return "bg-[#d37bff] text-black border-[#333333] shadow-[rgba(0,0,0,0.1)_0px_2px_5px]";
+        return "bg-[#d37bff] text-white border-[#333333]";
       case "source":
-        return "bg-white border-[#333333] text-black hover:bg-[#f2e8fa]";
+        return "bg-white border-[#333333] text-black hover:bg-[#f3f4f6]";
       case "claim":
-        return "bg-[#fcab83] border-[#333333] text-black hover:opacity-90";
+        return "bg-[#fcab83] border-[#333333] text-black"; // Restrained: Salmon restricted only to comparison nodes
       case "truth":
-        return "bg-[#9ef58f] border-[#333333] text-black hover:opacity-90";
+        return "bg-[#9ef58f] border-[#333333] text-black"; // Restrained: Green restricted only to comparison nodes
       default:
         return "bg-white border-[#333333] text-black";
     }
   };
 
   return (
-    <div className="bg-[#f2e8fa] border border-[#333333] rounded-2xl p-6 relative overflow-hidden shadow-[rgba(0,0,0,0.06)_0px_1px_2px_0px]">
+    <div className="bg-[#f9fafb] border border-[#333333] rounded-2xl p-6 relative overflow-hidden shadow-[rgba(0,0,0,0.05)_0px_1px_2px_0px]">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <h4 className="text-sm font-bold text-black flex items-center gap-2">
+        <h4 className="text-xs font-bold text-black uppercase tracking-wider flex items-center gap-2">
           <Layers className="h-4 w-4 text-[#d37bff]" /> Claims & Source Timeline Graph
         </h4>
-        <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold uppercase tracking-wider text-[#767676]">
-          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-[#d37bff]"></span> Topic</span>
-          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-white border border-[#333333]"></span> Source</span>
-          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-[#fcab83]"></span> Old Claim</span>
-          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-[#9ef58f]"></span> Current Truth</span>
+        <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold uppercase tracking-wider text-[#6b7280]">
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#d37bff]"></span> Topic</span>
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-white border border-[#333333]"></span> Source</span>
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#fcab83]"></span> Old Claim</span>
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#9ef58f]"></span> Current Truth</span>
         </div>
       </div>
 
@@ -233,12 +233,13 @@ function GraphView({ graph }: { graph: any }) {
                     stroke="#333333"
                     strokeWidth="1.5"
                     markerEnd="url(#arrow)"
+                    className="animate-draw-line"
                   />
                   {edge.label && (
                     <text
                       x={(start.x + end.x) / 2}
                       y={(start.y + end.y) / 2 - 3}
-                      fill="#767676"
+                      fill="#6b7280"
                       fontSize="8"
                       fontWeight="bold"
                       textAnchor="middle"
@@ -265,13 +266,13 @@ function GraphView({ graph }: { graph: any }) {
                   top: `${pos.y}px`,
                   transform: "translate(-50%, -50%)",
                 }}
-                className={`px-3 py-2 rounded-2xl border text-[11px] font-bold text-center max-w-[150px] transition duration-200 shadow-[rgba(0,0,0,0.06)_0px_1px_2px_0px] ${getNodeColor(
+                className={`px-3 py-2 rounded-2xl border text-[10px] font-bold text-center max-w-[150px] transition duration-200 shadow-[rgba(0,0,0,0.05)_0px_1px_2px_0px] ${getNodeColor(
                   node.type
                 )}`}
               >
                 <span className="line-clamp-2">{node.label}</span>
                 {node.type === "source" && (
-                  <span className="text-[8px] text-[#767676] font-normal mt-0.5 uppercase block">Source</span>
+                  <span className="text-[7px] text-[#6b7280] font-normal mt-0.5 uppercase block">Source</span>
                 )}
               </div>
             );
@@ -485,21 +486,26 @@ function HomeContent() {
     return c.severity === activeSeverityFilter;
   });
 
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return "text-emerald-600 border-[#333333] bg-[#9ef58f]/20";
-    if (score >= 70) return "text-amber-600 border-[#333333] bg-[#fcab83]/20";
-    return "text-rose-600 border-[#333333] bg-[#fcab83]/40";
-  };
-
   const getSeverityBadge = (sev: string) => {
     switch (sev) {
       case "high":
-        return <span className="px-2.5 py-1 rounded-2xl text-[10px] font-bold bg-[#fcab83] border border-[#333333] text-black">Breaking (High)</span>;
+        return <span className="px-2.5 py-1 rounded-2xl text-[9px] font-bold bg-[#fcab83] border border-[#333333] text-black">Breaking</span>;
       case "medium":
-        return <span className="px-2.5 py-1 rounded-2xl text-[10px] font-bold bg-[#fcab83]/60 border border-[#333333] text-black">Warning (Medium)</span>;
+        return <span className="px-2.5 py-1 rounded-2xl text-[9px] font-bold bg-[#fcab83]/50 border border-[#333333] text-black">Warning</span>;
       default:
-        return <span className="px-2.5 py-1 rounded-2xl text-[10px] font-bold bg-[#f2e8fa] border border-[#333333] text-black">Info (Low)</span>;
+        return <span className="px-2.5 py-1 rounded-2xl text-[9px] font-bold bg-[#f3f4f6] border border-[#333333] text-black">Info</span>;
     }
+  };
+
+  const getStaggerClass = (index: number) => {
+    const delays = [
+      "animate-delay-100",
+      "animate-delay-200",
+      "animate-delay-300",
+      "animate-delay-400",
+      "animate-delay-500"
+    ];
+    return delays[index % delays.length];
   };
 
   return (
@@ -509,15 +515,15 @@ function HomeContent() {
       <header className="border-b border-[#333333] bg-white sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-2xl bg-[#d37bff] border border-[#333333] flex items-center justify-center">
-              <FileCode className="h-5 w-5 text-black" />
+            <div className="h-9 w-9 rounded-2xl bg-black border border-[#333333] flex items-center justify-center">
+              <FileCode className="h-5 w-5 text-white" />
             </div>
             <div>
               <span className="font-extrabold text-sm tracking-tight text-black">PATCH NOTES</span>
-              <span className="ml-2 text-[9px] font-bold px-2 py-0.5 rounded-2xl bg-[#f2e8fa] text-black border border-[#333333]">Supermemory Local Edition</span>
+              <span className="ml-2 text-[9px] font-bold px-2 py-0.5 rounded-2xl bg-[#f3f4f6] text-black border border-[#333333]">Supermemory Local Edition</span>
             </div>
           </div>
-          <div className="flex items-center gap-4 text-xs text-[#767676]">
+          <div className="flex items-center gap-4 text-xs text-[#6b7280]">
             <span className="flex items-center gap-1.5 font-bold"><ShieldCheck className="h-4 w-4 text-[#d37bff]" /> Fully Local Storage</span>
           </div>
         </div>
@@ -528,23 +534,23 @@ function HomeContent() {
         
         {/* STEP 1: INPUT FORM */}
         {step === "input" && (
-          <div className="space-y-10">
+          <div className="space-y-10 animate-slide-in">
             {/* Hero text */}
             <div className="text-center max-w-2xl mx-auto space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-2xl bg-[#f2e8fa] border border-[#333333] text-xs font-bold text-black">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-2xl bg-[#f3f4f6] border border-[#333333] text-xs font-bold text-black">
                 <Sparkles className="h-3.5 w-3.5 text-[#d37bff]" /> Hackathon Developer Utility
               </div>
               <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-black">
                 Tutorial vs Documentation Compatibility Analyzer
               </h1>
-              <p className="text-[#767676] text-sm leading-relaxed">
+              <p className="text-[#6b7280] text-sm leading-relaxed">
                 Index tutorial videos and documentation locally inside <strong className="text-[#d37bff]">Supermemory Local</strong> to analyze claims history, verify freshness, and map claims relationship graphs.
               </p>
             </div>
 
             {/* Error Message */}
             {errorMessage && (
-              <div className="max-w-3xl mx-auto p-4 rounded-2xl bg-[#fcab83]/30 border border-[#333333] text-black text-xs flex items-center gap-3">
+              <div className="max-w-3xl mx-auto p-4 rounded-2xl bg-[#fcab83]/20 border border-[#333333] text-black text-xs flex items-center gap-3">
                 <AlertTriangle className="h-5 w-5 shrink-0 text-black" />
                 <span>{errorMessage}</span>
               </div>
@@ -554,15 +560,15 @@ function HomeContent() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
               
               {/* Form Input fields */}
-              <div className="lg:col-span-2 bg-[#f2e8fa] border border-[#333333] rounded-2xl p-6 md:p-8 space-y-6 shadow-[rgba(0,0,0,0.06)_0px_1px_2px_0px]">
-                <h2 className="text-base font-bold flex items-center gap-2 border-b border-[#333333] pb-3 text-black">
+              <div className="lg:col-span-2 bg-[#f9fafb] border border-[#333333] rounded-2xl p-6 md:p-8 space-y-6 shadow-[rgba(0,0,0,0.05)_0px_1px_2px_0px]">
+                <h2 className="text-xs font-bold flex items-center gap-2 border-b border-[#333333] pb-3 text-black uppercase tracking-wider">
                   <Terminal className="h-4 w-4 text-[#d37bff]" /> Start Analysis & Ingestion
                 </h2>
                 <form onSubmit={handleStartIngestion} className="space-y-6">
                   
                   {/* Topic name */}
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-[#767676] uppercase tracking-wider">
+                    <label className="text-[10px] font-bold text-[#6b7280] uppercase tracking-wider">
                       Topic Name
                     </label>
                     <input 
@@ -576,9 +582,9 @@ function HomeContent() {
                   </div>
 
                   {/* Video Input Group */}
-                  <div className="border border-[#333333] bg-white/40 p-5 rounded-2xl space-y-4">
+                  <div className="border border-[#333333] bg-white p-5 rounded-2xl space-y-4">
                     <div className="flex items-center justify-between border-b border-[#333333] pb-2">
-                      <label className="text-xs font-bold text-black uppercase tracking-wider flex items-center gap-2">
+                      <label className="text-[10px] font-bold text-black uppercase tracking-wider flex items-center gap-2">
                         <Play className="h-4 w-4 text-[#d37bff]" /> Tutorial Video Source
                       </label>
                       <div className="flex gap-2 p-0.5 bg-white border border-[#333333] rounded-2xl">
@@ -586,7 +592,7 @@ function HomeContent() {
                           type="button"
                           onClick={() => setVideoInputType("url")}
                           className={`px-3 py-1 text-[10px] font-bold rounded-2xl flex items-center gap-1 cursor-pointer transition ${
-                            videoInputType === "url" ? "bg-[#d37bff] text-black" : "text-[#767676] hover:text-black"
+                            videoInputType === "url" ? "bg-[#d37bff] text-white border border-[#333333]" : "text-[#6b7280] hover:text-black"
                           }`}
                         >
                           <Link className="h-3 w-3" /> URL
@@ -595,7 +601,7 @@ function HomeContent() {
                           type="button"
                           onClick={() => setVideoInputType("file")}
                           className={`px-3 py-1 text-[10px] font-bold rounded-2xl flex items-center gap-1 cursor-pointer transition ${
-                            videoInputType === "file" ? "bg-[#d37bff] text-black" : "text-[#767676] hover:text-black"
+                            videoInputType === "file" ? "bg-[#d37bff] text-white border border-[#333333]" : "text-[#6b7280] hover:text-black"
                           }`}
                         >
                           <Upload className="h-3 w-3" /> Upload
@@ -606,7 +612,7 @@ function HomeContent() {
                     {/* Metadata fields */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-[#767676] uppercase tracking-wider flex items-center gap-1"><Info className="h-3 w-3" /> Source Name</span>
+                        <span className="text-[9px] font-bold text-[#6b7280] uppercase tracking-wider flex items-center gap-1"><Info className="h-3 w-3" /> Source Name</span>
                         <input
                           type="text"
                           placeholder="e.g. Tutorial Video (2023)"
@@ -617,7 +623,7 @@ function HomeContent() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-[#767676] uppercase tracking-wider flex items-center gap-1"><Calendar className="h-3 w-3" /> Publish Date</span>
+                        <span className="text-[9px] font-bold text-[#6b7280] uppercase tracking-wider flex items-center gap-1"><Calendar className="h-3 w-3" /> Publish Date</span>
                         <input
                           type="date"
                           value={videoSourceDate}
@@ -646,26 +652,26 @@ function HomeContent() {
                           onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
                           required={videoInputType === "file"}
                         />
-                        <Upload className="h-5 w-5 text-[#767676] mb-1" />
+                        <Upload className="h-5 w-5 text-[#6b7280] mb-1" />
                         {videoFile ? (
                           <p className="text-xs font-bold text-[#d37bff]">{videoFile.name}</p>
                         ) : (
-                          <p className="text-xs text-[#767676]">Click or drag video file here</p>
+                          <p className="text-xs text-[#6b7280]">Click or drag video file here</p>
                         )}
                       </div>
                     )}
                   </div>
 
                   {/* Documentation Input Group */}
-                  <div className="border border-[#333333] bg-white/40 p-5 rounded-2xl space-y-4">
-                    <label className="text-xs font-bold text-black uppercase tracking-wider flex items-center gap-2 border-b border-[#333333] pb-2">
+                  <div className="border border-[#333333] bg-white p-5 rounded-2xl space-y-4">
+                    <label className="text-[10px] font-bold text-black uppercase tracking-wider flex items-center gap-2 border-b border-[#333333] pb-2">
                       <FileText className="h-4 w-4 text-[#d37bff]" /> Official Documentation Source
                     </label>
 
                     {/* Metadata fields */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-[#767676] uppercase tracking-wider flex items-center gap-1"><Info className="h-3 w-3" /> Doc Source Name</span>
+                        <span className="text-[9px] font-bold text-[#6b7280] uppercase tracking-wider flex items-center gap-1"><Info className="h-3 w-3" /> Doc Source Name</span>
                         <input
                           type="text"
                           placeholder="e.g. Official Docs (2026)"
@@ -676,7 +682,7 @@ function HomeContent() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-[#767676] uppercase tracking-wider flex items-center gap-1"><Calendar className="h-3 w-3" /> Source Date</span>
+                        <span className="text-[9px] font-bold text-[#6b7280] uppercase tracking-wider flex items-center gap-1"><Calendar className="h-3 w-3" /> Source Date</span>
                         <input
                           type="date"
                           value={docSourceDate}
@@ -699,7 +705,7 @@ function HomeContent() {
 
                   <button 
                     type="submit"
-                    className="w-full py-4 rounded-2xl bg-[#d37bff] hover:opacity-90 border border-[#333333] text-black font-bold text-sm transition shadow-[rgba(0,0,0,0.1)_0px_2px_5px] flex items-center justify-center gap-2 group cursor-pointer"
+                    className="w-full py-4 rounded-2xl bg-[#d37bff] hover:opacity-90 border border-[#333333] text-white font-bold text-sm transition shadow-[rgba(0,0,0,0.05)_0px_1px_2px_0px] flex items-center justify-center gap-2 group cursor-pointer"
                   >
                     Compare Video and Docs <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition" />
                   </button>
@@ -708,11 +714,11 @@ function HomeContent() {
 
               {/* Preset Side Panel */}
               <div className="space-y-4">
-                <div className="bg-[#f2e8fa] border border-[#333333] rounded-2xl p-6 space-y-4 shadow-[rgba(0,0,0,0.06)_0px_1px_2px_0px]">
-                  <h3 className="text-xs font-bold tracking-wider text-[#767676] uppercase flex items-center gap-2">
+                <div className="bg-[#f9fafb] border border-[#333333] rounded-2xl p-6 space-y-4 shadow-[rgba(0,0,0,0.05)_0px_1px_2px_0px]">
+                  <h3 className="text-[10px] font-bold tracking-wider text-[#6b7280] uppercase flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-[#d37bff]" /> Demo Presets
                   </h3>
-                  <p className="text-xs text-[#767676] leading-relaxed">
+                  <p className="text-xs text-[#6b7280] leading-relaxed">
                     Click a preset to quickly prefill dated timeline data and verify how provenance timelines are constructed.
                   </p>
                   
@@ -721,20 +727,20 @@ function HomeContent() {
                       <button
                         key={idx}
                         onClick={() => loadPreset(preset)}
-                        className="w-full text-left p-4 rounded-2xl bg-white border border-[#333333] hover:bg-[#f2e8fa] transition cursor-pointer flex flex-col gap-1 shadow-[rgba(0,0,0,0.06)_0px_1px_2px_0px]"
+                        className="w-full text-left p-4 rounded-2xl bg-white border border-[#333333] hover:bg-[#f3f4f6] transition cursor-pointer flex flex-col gap-1 shadow-[rgba(0,0,0,0.05)_0px_1px_2px_0px]"
                       >
                         <span className="text-xs font-bold text-black">{preset.name}</span>
-                        <span className="text-[10px] text-[#767676] line-clamp-2">{preset.description}</span>
+                        <span className="text-[10px] text-[#6b7280] line-clamp-2">{preset.description}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div className="bg-white border border-[#333333] rounded-2xl p-6 space-y-3">
-                  <h4 className="text-xs font-bold text-black uppercase tracking-wider flex items-center gap-2">
+                  <h4 className="text-[10px] font-bold text-black uppercase tracking-wider flex items-center gap-2">
                     <Info className="h-4 w-4 text-[#d37bff]" /> Provenance Upgrades
                   </h4>
-                  <ul className="text-[11px] text-[#767676] space-y-2 list-disc list-inside">
+                  <ul className="text-[11px] text-[#6b7280] space-y-2 list-disc list-inside">
                     <li>Chronological timeline tracking</li>
                     <li>Saves exact metadata: source, URLs, dates</li>
                     <li>Exposed over local MCP tool server</li>
@@ -747,28 +753,30 @@ function HomeContent() {
           </div>
         )}
 
-        {/* STEP 2: INGESTION LOADER */}
+        {/* STEP 2: INGESTION LOADER (SKELETON SHIMMER) */}
         {step === "loading" && (
-          <div className="max-w-xl mx-auto w-full bg-[#f2e8fa] border border-[#333333] rounded-2xl p-8 text-center space-y-8 shadow-[rgba(0,0,0,0.06)_0px_1px_2px_0px]">
-            <div className="flex justify-center">
-              <div className="relative h-16 w-16">
-                <div className="absolute inset-0 rounded-full border-4 border-[#333333]/10"></div>
-                <div className="absolute inset-0 rounded-full border-4 border-t-[#d37bff] animate-spin"></div>
-              </div>
-            </div>
+          <div className="max-w-xl mx-auto w-full bg-[#f9fafb] border border-[#333333] rounded-2xl p-8 space-y-8 shadow-[rgba(0,0,0,0.05)_0px_1px_2px_0px]">
             <div className="space-y-3">
-              <h2 className="text-base font-bold text-black">Processing Ingestion</h2>
-              <p className="text-[#767676] text-xs">{pollingStatus}</p>
+              <h2 className="text-sm font-bold text-black uppercase tracking-wider">Processing Ingestion</h2>
+              <p className="text-[#6b7280] text-xs font-mono">{pollingStatus}</p>
             </div>
+            
+            {/* Shimmer layout */}
+            <div className="space-y-4">
+              <div className="h-10 w-full rounded-2xl skeleton-shimmer border border-[#333333]/20"></div>
+              <div className="h-10 w-full rounded-2xl skeleton-shimmer border border-[#333333]/20"></div>
+              <div className="h-4 w-3/4 rounded-2xl skeleton-shimmer"></div>
+            </div>
+            
             <div className="border-t border-[#333333] pt-6 space-y-4 text-left">
               <div className="flex items-center justify-between p-3 rounded-2xl bg-white border border-[#333333]">
                 <span className="text-xs flex items-center gap-2 font-bold text-black">
                   <Play className="h-4 w-4 text-[#d37bff]" /> Tutorial Video Indexing
                 </span>
-                <span className="text-[10px] font-bold px-2.5 py-1 rounded-2xl bg-[#f2e8fa] border border-[#333333] flex items-center gap-1.5 capitalize text-black">
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-2xl bg-[#f3f4f6] border border-[#333333] flex items-center gap-1.5 capitalize text-black">
                   {videoStatus === "done" && <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />}
-                  {videoStatus === "queued" && <Clock className="h-3.5 w-3.5 text-[#767676]" />}
-                  {videoStatus === "failed" && <AlertTriangle className="h-3.5 w-3.5 text-[#fcab83]" />}
+                  {videoStatus === "queued" && <Clock className="h-3.5 w-3.5 text-[#6b7280] animate-spin" />}
+                  {videoStatus === "failed" && <AlertTriangle className="h-3.5 w-3.5 text-rose-600" />}
                   {videoStatus === "done" ? "done" : "processing"}
                 </span>
               </div>
@@ -776,10 +784,10 @@ function HomeContent() {
                 <span className="text-xs flex items-center gap-2 font-bold text-black">
                   <FileText className="h-4 w-4 text-[#d37bff]" /> Documentation Parsing
                 </span>
-                <span className="text-[10px] font-bold px-2.5 py-1 rounded-2xl bg-[#f2e8fa] border border-[#333333] flex items-center gap-1.5 capitalize text-black">
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-2xl bg-[#f3f4f6] border border-[#333333] flex items-center gap-1.5 capitalize text-black">
                   {docStatus === "done" && <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />}
-                  {docStatus === "queued" && <Clock className="h-3.5 w-3.5 text-[#767676]" />}
-                  {docStatus === "failed" && <AlertTriangle className="h-3.5 w-3.5 text-[#fcab83]" />}
+                  {docStatus === "queued" && <Clock className="h-3.5 w-3.5 text-[#6b7280] animate-spin" />}
+                  {docStatus === "failed" && <AlertTriangle className="h-3.5 w-3.5 text-rose-600" />}
                   {docStatus === "done" ? "done" : "processing"}
                 </span>
               </div>
@@ -789,13 +797,13 @@ function HomeContent() {
 
         {/* STEP 3: COMPARISON VIEW */}
         {step === "compare" && (
-          <div className="space-y-8 animate-fade-in">
+          <div className="space-y-8 animate-slide-in">
             
             {/* Top Bar Actions */}
             <div className="flex items-center justify-between">
               <button 
                 onClick={() => setStep("input")}
-                className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-2xl bg-white border border-[#333333] hover:bg-[#f2e8fa] transition cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-2xl bg-white border border-[#333333] hover:bg-[#f3f4f6] transition cursor-pointer"
               >
                 <ArrowLeft className="h-4 w-4" /> Start Over
               </button>
@@ -803,11 +811,11 @@ function HomeContent() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleExportMarkdown}
-                  className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-2xl bg-[#d37bff] hover:opacity-90 text-black border border-[#333333] transition cursor-pointer"
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-2xl bg-[#d37bff] hover:opacity-90 text-white border border-[#333333] transition cursor-pointer"
                 >
                   <Download className="h-4 w-4" /> Export Report
                 </button>
-                <div className="text-[10px] text-[#767676] font-mono hidden sm:block">
+                <div className="text-[10px] text-[#6b7280] font-mono hidden sm:block">
                   Tag: {topicId}
                 </div>
               </div>
@@ -815,30 +823,31 @@ function HomeContent() {
 
             {/* Score & Summary Banner */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-              <div className="bg-[#f2e8fa] border border-[#333333] rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-4 shadow-[rgba(0,0,0,0.06)_0px_1px_2px_0px]">
-                <span className="text-xs font-bold text-[#767676] tracking-wider uppercase">Compatibility Score</span>
-                <div className={`h-28 w-28 rounded-full border border-[#333333] flex flex-col items-center justify-center ${getScoreColor(compatibilityScore)}`}>
+              <div className="bg-[#f9fafb] border border-[#333333] rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-4 shadow-[rgba(0,0,0,0.05)_0px_1px_2px_0px]">
+                <span className="text-[10px] font-bold text-[#6b7280] tracking-wider uppercase">Compatibility Score</span>
+                {/* Restrained: Grayscale border for score UI chrome, not red/green */}
+                <div className="h-28 w-28 rounded-full border-2 border-[#333333] flex flex-col items-center justify-center bg-white">
                   <Gauge className="h-6 w-6 opacity-60 mb-0.5 text-black" />
                   <span className="text-2xl font-extrabold text-black">{compatibilityScore}%</span>
                 </div>
-                <span className="text-[11px] text-[#767676]">
-                  {compatibilityScore >= 90 ? "Excellent. Video claims match current docs." : 
-                   compatibilityScore >= 70 ? "Warning. Several deprecated methods noticed." : 
-                   "Critical. Outdated claims will cause errors."}
+                <span className="text-[10px] text-[#6b7280] uppercase tracking-wider font-bold">
+                  {compatibilityScore >= 90 ? "High Compatibility" : 
+                   compatibilityScore >= 70 ? "Medium Deprecation" : 
+                   "Critical Outdates"}
                 </span>
               </div>
 
-              <div className="md:col-span-2 bg-[#f2e8fa] border border-[#333333] rounded-2xl p-6 flex flex-col justify-between space-y-4 shadow-[rgba(0,0,0,0.06)_0px_1px_2px_0px]">
+              <div className="md:col-span-2 bg-[#f9fafb] border border-[#333333] rounded-2xl p-6 flex flex-col justify-between space-y-4 shadow-[rgba(0,0,0,0.05)_0px_1px_2px_0px]">
                 <div>
-                  <h3 className="text-xs font-bold text-[#767676] uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <h3 className="text-[10px] font-bold text-[#6b7280] uppercase tracking-wider mb-2 flex items-center gap-2">
                     <Sparkles className="h-4.5 w-4.5 text-[#d37bff]" /> Comparison Summary
                   </h3>
-                  <p className="text-sm text-black leading-relaxed">
+                  <p className="text-xs text-black leading-relaxed">
                     {summary}
                   </p>
                 </div>
                 
-                <div className="flex items-center gap-4 text-[10px] border-t border-[#333333]/30 pt-4 text-[#767676] font-bold">
+                <div className="flex items-center gap-4 text-[10px] border-t border-[#333333]/25 pt-4 text-[#6b7280] font-bold">
                   <span>Total Claims: {comparisons.length}</span>
                   <span>Breaking Claims: {comparisons.filter(c => c.severity === "high").length}</span>
                 </div>
@@ -853,7 +862,7 @@ function HomeContent() {
               <button 
                 onClick={() => setActiveSeverityFilter("all")}
                 className={`px-4 py-1.5 rounded-2xl text-xs font-bold border transition cursor-pointer ${
-                  activeSeverityFilter === "all" ? "bg-[#d37bff] text-black border-[#333333]" : "bg-transparent border-[#333333]/20 text-[#767676] hover:border-[#333333]"
+                  activeSeverityFilter === "all" ? "bg-[#d37bff] text-white border-[#333333]" : "bg-transparent border-[#333333]/20 text-[#6b7280] hover:border-[#333333]"
                 }`}
               >
                 All ({comparisons.length})
@@ -861,7 +870,7 @@ function HomeContent() {
               <button 
                 onClick={() => setActiveSeverityFilter("high")}
                 className={`px-4 py-1.5 rounded-2xl text-xs font-bold border transition cursor-pointer ${
-                  activeSeverityFilter === "high" ? "bg-[#fcab83] text-black border-[#333333]" : "bg-transparent border-[#333333]/20 text-[#767676] hover:border-[#333333]"
+                  activeSeverityFilter === "high" ? "bg-black text-white border-[#333333]" : "bg-transparent border-[#333333]/20 text-[#6b7280] hover:border-[#333333]"
                 }`}
               >
                 Breaking ({comparisons.filter(c => c.severity === "high").length})
@@ -869,7 +878,7 @@ function HomeContent() {
               <button 
                 onClick={() => setActiveSeverityFilter("medium")}
                 className={`px-4 py-1.5 rounded-2xl text-xs font-bold border transition cursor-pointer ${
-                  activeSeverityFilter === "medium" ? "bg-[#fcab83]/60 text-black border-[#333333]" : "bg-transparent border-[#333333]/20 text-[#767676] hover:border-[#333333]"
+                  activeSeverityFilter === "medium" ? "bg-black/60 text-white border-[#333333]" : "bg-transparent border-[#333333]/20 text-[#6b7280] hover:border-[#333333]"
                 }`}
               >
                 Warnings ({comparisons.filter(c => c.severity === "medium").length})
@@ -879,17 +888,17 @@ function HomeContent() {
             {/* List of Comparisons */}
             <div className="space-y-6">
               {filteredComparisons.length === 0 ? (
-                <div className="p-8 text-center bg-[#f2e8fa] border border-[#333333] rounded-2xl text-[#767676] text-xs">
+                <div className="p-8 text-center bg-[#f9fafb] border border-[#333333] rounded-2xl text-[#6b7280] text-xs">
                   No issues found for the selected filter.
                 </div>
               ) : (
                 filteredComparisons.map((item, idx) => (
-                  <div key={idx} className="bg-white border border-[#333333] rounded-2xl overflow-hidden shadow-[rgba(0,0,0,0.06)_0px_1px_2px_0px]">
+                  <div key={idx} className={`bg-white border border-[#333333] rounded-2xl overflow-hidden shadow-[rgba(0,0,0,0.05)_0px_1px_2px_0px] ${getStaggerClass(idx)} animate-slide-in`}>
                     
                     {/* Header bar of comparison */}
-                    <div className="px-6 py-4 bg-[#f2e8fa] border-b border-[#333333] flex flex-wrap items-center justify-between gap-4">
+                    <div className="px-6 py-4 bg-[#f9fafb] border-b border-[#333333] flex flex-wrap items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        <span className="text-[#767676] text-xs font-bold font-mono">#{idx+1}</span>
+                        <span className="text-[#6b7280] text-xs font-bold font-mono">#{idx+1}</span>
                         {getSeverityBadge(item.severity)}
                         <h4 className="text-xs font-bold text-black uppercase tracking-wider">{item.claim}</h4>
                       </div>
@@ -898,8 +907,8 @@ function HomeContent() {
                     <div className="p-6 space-y-6">
                       {/* Chronological Provenance History Timeline */}
                       {item.history && item.history.length > 0 && (
-                        <div className="bg-[#f2e8fa]/40 border border-[#333333]/30 rounded-2xl p-5 space-y-4">
-                          <span className="text-xs font-bold uppercase tracking-wider text-black flex items-center gap-1.5">
+                        <div className="bg-[#f9fafb] border border-[#333333]/20 rounded-2xl p-5 space-y-4">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-black flex items-center gap-1.5">
                             <Activity className="h-4 w-4 text-[#d37bff]" /> Chronological Claims History
                           </span>
                           
@@ -908,13 +917,13 @@ function HomeContent() {
                               <div key={hIdx} className="relative">
                                 {/* Dot indicator */}
                                 <div className="absolute -left-[21px] mt-1 h-2.5 w-2.5 rounded-full border border-[#d37bff] bg-white"></div>
-                                <div className="flex items-baseline justify-between gap-2 flex-wrap text-[10px] font-bold text-[#767676] uppercase tracking-wider">
+                                <div className="flex items-baseline justify-between gap-2 flex-wrap text-[9px] font-bold text-[#6b7280] uppercase tracking-wider">
                                   <span>{hist.source}</span>
                                   <span>{hist.date}</span>
                                 </div>
                                 <p className="text-xs text-black mt-1 font-mono">{hist.statement}</p>
                                 {hist.code && (
-                                  <pre className="mt-1.5 p-2 bg-white border border-[#333333] text-rose-800 rounded-2xl font-mono text-[10px] overflow-x-auto">
+                                  <pre className="mt-1.5 p-2 bg-white border border-[#333333] text-[#fcab83] rounded-2xl font-mono text-[10px] overflow-x-auto">
                                     <code>{hist.code}</code>
                                   </pre>
                                 )}
@@ -925,9 +934,9 @@ function HomeContent() {
                       )}
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Outdated Video Claim */}
-                        <div className="bg-[#fcab83]/10 border border-[#333333]/30 rounded-2xl p-5 space-y-2">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-rose-900 flex items-center gap-1.5">
+                        {/* Outdated Video Claim (Salmon color reserved only for outdated context) */}
+                        <div className="bg-[#fcab83]/10 border border-[#fcab83]/40 rounded-2xl p-5 space-y-2">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-red-700 flex items-center gap-1.5">
                             <Play className="h-3 w-3 shrink-0" /> Old Claim Source
                           </span>
                           <p className="text-xs font-semibold text-black font-mono">
@@ -935,9 +944,9 @@ function HomeContent() {
                           </p>
                         </div>
 
-                        {/* Current Documentation Truth */}
-                        <div className="bg-[#9ef58f]/10 border border-[#333333]/30 rounded-2xl p-5 space-y-2">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+                        {/* Current Documentation Truth (Green color reserved only for current docs context) */}
+                        <div className="bg-[#9ef58f]/10 border border-[#9ef58f]/40 rounded-2xl p-5 space-y-2">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-green-700 flex items-center gap-1.5">
                             <CheckCircle className="h-3 w-3 shrink-0" /> Latest Documentation Truth
                           </span>
                           <p className="text-xs font-semibold text-black font-mono">
@@ -947,8 +956,8 @@ function HomeContent() {
                       </div>
 
                       {/* Explanation */}
-                      <div className="bg-[#f2e8fa]/60 border border-[#333333] rounded-2xl p-5 space-y-2">
-                        <span className="text-[10px] font-bold text-[#767676] uppercase tracking-wider flex items-center gap-1.5">
+                      <div className="bg-[#f9fafb] border border-[#333333] rounded-2xl p-5 space-y-2">
+                        <span className="text-[9px] font-bold text-[#6b7280] uppercase tracking-wider flex items-center gap-1.5">
                           <Info className="h-3.5 w-3.5 text-[#d37bff]" /> What Changed & Impact
                         </span>
                         <p className="text-xs text-black leading-relaxed">
@@ -959,14 +968,14 @@ function HomeContent() {
                       {/* Code Diff Section */}
                       {(item.oldCode || item.newCode) && (
                         <div className="space-y-3">
-                          <span className="text-[10px] font-bold text-[#767676] uppercase tracking-wider flex items-center gap-1.5">
+                          <span className="text-[9px] font-bold text-[#6b7280] uppercase tracking-wider flex items-center gap-1.5">
                             <Code className="h-3.5 w-3.5 text-[#d37bff]" /> Syntax Migration Diff
                           </span>
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {item.oldCode && (
-                              <div className="bg-[#fcab83]/10 border border-[#333333] rounded-2xl overflow-hidden font-mono text-xs">
-                                <div className="bg-[#fcab83]/20 border-b border-[#333333] px-4 py-2 text-rose-950 font-bold flex items-center gap-2">
+                              <div className="bg-[#fcab83]/10 border border-[#fcab83] rounded-2xl overflow-hidden font-mono text-xs">
+                                <div className="bg-[#fcab83]/20 border-b border-[#fcab83] px-4 py-2 text-rose-950 font-bold flex items-center gap-2">
                                   <span className="h-2 w-2 rounded-full bg-[#fcab83] border border-[#333333]"></span> Outdated Code
                                 </div>
                                 <pre className="p-4 text-rose-950 overflow-x-auto whitespace-pre-wrap">
@@ -976,11 +985,11 @@ function HomeContent() {
                             )}
 
                             {item.newCode && (
-                              <div className="bg-[#9ef58f]/10 border border-[#333333] rounded-2xl overflow-hidden font-mono text-xs">
-                                <div className="bg-[#9ef58f]/20 border-b border-[#333333] px-4 py-2 text-emerald-950 font-bold flex items-center gap-2">
+                              <div className="bg-[#9ef58f]/10 border border-[#9ef58f] rounded-2xl overflow-hidden font-mono text-xs">
+                                <div className="bg-[#9ef58f]/20 border-b border-[#9ef58f] px-4 py-2 text-emerald-950 font-bold flex items-center gap-2">
                                   <span className="h-2 w-2 rounded-full bg-[#9ef58f] border border-[#333333]"></span> Correct Code
                                 </div>
-                                <pre className="p-4 text-emerald-950 overflow-x-auto whitespace-pre-wrap">
+                                <pre className="p-4 text-emerald-300 overflow-x-auto whitespace-pre-wrap">
                                   <code>{item.newCode}</code>
                                 </pre>
                               </div>
@@ -1001,7 +1010,7 @@ function HomeContent() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[#333333] bg-white py-8 mt-12 text-center text-xs text-[#767676] font-bold">
+      <footer className="border-t border-[#333333] bg-white py-8 mt-12 text-center text-xs text-[#6b7280] font-bold">
         <p>© 2026 Patch Notes. Powered by Supermemory Local Server and Gemini 2.5 Flash.</p>
       </footer>
     </div>
