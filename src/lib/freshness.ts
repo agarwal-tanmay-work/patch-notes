@@ -157,6 +157,12 @@ Format your output as a JSON object matching this structure EXACTLY:
   }
 }
 
+CRITICAL RULES FOR COMPATIBILITY SCORE:
+- The overall "compatibilityScore" MUST reflect the severity of the changes found in the "comparisons" array.
+- If there is at least one comparison where "severity" is "high" and "isOutdated" is true, the "compatibilityScore" MUST be calculated as less than 70 (e.g., between 20 and 65 depending on how many breaking changes are present). Never output a high compatibility score if breaking changes are reported.
+- If there are no breaking changes but there are warning or deprecation changes ("severity" is "medium" and "isOutdated" is true), the compatibility score MUST be between 70 and 89.
+- Only output a compatibility score of 90 to 100 if all comparison items are compatible/fresh ("isOutdated" is false for all).
+
 Guidelines for the Graph:
 - Add a central "topic" node for the overall topic: "${topicName}".
 - Add "source" nodes for each unique source name in the facts. Connect them to the topic node with "part_of".
