@@ -19,16 +19,20 @@ import {
   Upload,
   Link,
   Download,
-  AlertCircle
+  Calendar,
+  Layers,
+  Activity
 } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-// Demo data presets
+// Presets updated with chronological dates
 const DEMO_PRESETS = [
   {
     name: "React Router v6 Redirects",
-    description: "Compare obsolete v5 style Redirect component with v6 Navigate and useNavigate hook.",
+    description: "Compare old React Router v5 Redirect component with modern v6 Navigate and useNavigate.",
     videoUrl: "https://www.youtube.com/watch?v=y881t8ilMyc",
+    videoSourceName: "Tutorial v5 (2022)",
+    videoSourceDate: "2022-04-12",
     docText: `# React Router v6 Navigation & Redirects Guide
 
 In React Router v6, the component <Redirect> has been completely removed and replaced by the <Navigate> component. 
@@ -53,12 +57,16 @@ function LoginButton() {
   const navigate = useNavigate();
   return <button onClick={() => navigate("/dashboard")}>Login</button>;
 }
-\`\`\``
+\`\`\``,
+    docSourceName: "React Router v6 Docs",
+    docSourceDate: "2026-03-01"
   },
   {
     name: "Next.js Navigation (App Router)",
     description: "Compare Pages Router 'next/router' with App Router 'next/navigation' requirements.",
     videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    videoSourceName: "Tutorial Pages Router (2023)",
+    videoSourceDate: "2023-08-15",
     docText: `# Next.js App Router Navigation
 
 In the App Router, the navigation hook 'useRouter' must be imported from 'next/navigation' instead of 'next/router'. Importing from 'next/router' in a Server Component or App Router Client Component will result in a runtime crash.
@@ -85,12 +93,16 @@ export default function NavigationDemo() {
     </div>
   );
 }
-\`\`\``
+\`\`\``,
+    docSourceName: "Next.js App Router v15 Docs",
+    docSourceDate: "2026-05-10"
   },
   {
     name: "Supermemory JS SDK",
     description: "Compare older client.memories.add signature with the modern client.add signature.",
     videoUrl: "https://www.youtube.com/watch?v=t705574H-A0",
+    videoSourceName: "SDK Intro (2024)",
+    videoSourceDate: "2024-11-20",
     docText: `# Supermemory JS SDK Reference
 
 The modern JS SDK client simplifies adding documents and memories. The old \`client.memories.add\` is deprecated. You must use \`client.add\` directly on the initialized client.
@@ -109,44 +121,209 @@ await client.add({
   content: "I am building a developer tool called Patch Notes.",
   containerTag: "project-patch-notes"
 });
-\`\`\``
+\`\`\``,
+    docSourceName: "Supermemory SDK Docs",
+    docSourceDate: "2026-07-01"
   }
 ];
 
+function GraphView({ graph }: { graph: any }) {
+  if (!graph || !graph.nodes || graph.nodes.length === 0) {
+    return (
+      <div className="p-8 text-center text-zinc-500 text-sm bg-zinc-900/10 border border-zinc-900 rounded-2xl">
+        No graph representation available for this comparison.
+      </div>
+    );
+  }
+
+  // Position nodes hierarchically
+  const topicNodes = graph.nodes.filter((n: any) => n.type === "topic");
+  const sourceNodes = graph.nodes.filter((n: any) => n.type === "source");
+  const claimNodes = graph.nodes.filter((n: any) => n.type === "claim" || n.type === "truth");
+
+  const width = 800;
+  const height = 360;
+  const positions: Record<string, { x: number; y: number }> = {};
+
+  topicNodes.forEach((node: any) => {
+    positions[node.id] = { x: width / 2, y: 45 };
+  });
+
+  const sCount = sourceNodes.length;
+  sourceNodes.forEach((node: any, idx: number) => {
+    positions[node.id] = {
+      x: sCount > 1 ? 120 + (idx * (width - 240)) / (sCount - 1) : width / 2,
+      y: 155,
+    };
+  });
+
+  const cCount = claimNodes.length;
+  claimNodes.forEach((node: any, idx: number) => {
+    positions[node.id] = {
+      x: cCount > 1 ? 80 + (idx * (width - 160)) / (cCount - 1) : width / 2,
+      y: 285,
+    };
+  });
+
+  graph.nodes.forEach((node: any) => {
+    if (!positions[node.id]) {
+      positions[node.id] = { x: Math.random() * width, y: Math.random() * height };
+    }
+  });
+
+  const getNodeColor = (type: string) => {
+    switch (type) {
+      case "topic":
+        return "bg-gradient-to-tr from-violet-600 to-fuchsia-600 text-white border-violet-500 shadow-violet-500/25";
+      case "source":
+        return "bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700";
+      case "claim":
+        return "bg-rose-950/30 border-rose-900/40 text-rose-300 hover:border-rose-600";
+      case "truth":
+        return "bg-emerald-950/30 border-emerald-900/40 text-emerald-300 hover:border-emerald-600";
+      default:
+        return "bg-zinc-800 border-zinc-700 text-zinc-300";
+    }
+  };
+
+  return (
+    <div className="bg-zinc-900/20 border border-zinc-900 rounded-3xl p-6 relative overflow-hidden">
+      <div className="flex items-center justify-between mb-6">
+        <h4 className="text-sm font-bold text-zinc-300 flex items-center gap-2">
+          <Layers className="h-4.5 w-4.5 text-violet-400" /> Claims & Source Timeline Graph
+        </h4>
+        <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-violet-600"></span> Topic</span>
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-zinc-700"></span> Source</span>
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-rose-600"></span> Old Claim</span>
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-600"></span> Current Truth</span>
+        </div>
+      </div>
+
+      <div className="relative w-full overflow-x-auto select-none" style={{ height: `${height}px` }}>
+        <div className="absolute" style={{ width: `${width}px`, height: `${height}px` }}>
+          {/* SVG Links */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none">
+            <defs>
+              <marker
+                id="arrow"
+                viewBox="0 0 10 10"
+                refX="15"
+                refY="5"
+                markerWidth="5"
+                markerHeight="5"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#3f3f46" />
+              </marker>
+            </defs>
+            {graph.edges.map((edge: any, idx: number) => {
+              const start = positions[edge.from];
+              const end = positions[edge.to];
+              if (!start || !end) return null;
+
+              const midY = (start.y + end.y) / 2;
+              const pathD = `M ${start.x} ${start.y} C ${start.x} ${midY}, ${end.x} ${midY}, ${end.x} ${end.y}`;
+
+              return (
+                <g key={idx}>
+                  <path
+                    d={pathD}
+                    fill="none"
+                    stroke="#27272a"
+                    strokeWidth="1.5"
+                    markerEnd="url(#arrow)"
+                  />
+                  {edge.label && (
+                    <text
+                      x={(start.x + end.x) / 2}
+                      y={(start.y + end.y) / 2 - 3}
+                      fill="#52525b"
+                      fontSize="8"
+                      fontWeight="bold"
+                      textAnchor="middle"
+                    >
+                      {edge.label}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+          </svg>
+
+          {/* HTML Nodes */}
+          {graph.nodes.map((node: any) => {
+            const pos = positions[node.id];
+            if (!pos) return null;
+
+            return (
+              <div
+                key={node.id}
+                style={{
+                  position: "absolute",
+                  left: `${pos.x}px`,
+                  top: `${pos.y}px`,
+                  transform: "translate(-50%, -50%)",
+                }}
+                className={`px-3 py-2 rounded-xl border text-[11px] font-bold text-center max-w-[150px] shadow-lg flex flex-col justify-center items-center transition duration-200 ${getNodeColor(
+                  node.type
+                )}`}
+              >
+                <span className="line-clamp-2">{node.label}</span>
+                {node.type === "source" && (
+                  <span className="text-[8px] text-zinc-500 font-normal mt-0.5 uppercase">Source</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function HomeContent() {
-  // Navigation & Page State
   const [step, setStep] = useState<"input" | "loading" | "compare">("input");
   
-  // Ingestion Input Form
+  // Form Inputs
   const [videoInputType, setVideoInputType] = useState<"url" | "file">("url");
   const [videoUrl, setVideoUrl] = useState("");
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [docText, setDocText] = useState("");
   const [topicName, setTopicName] = useState("");
+
+  // Metadata inputs for Provenance
+  const [videoSourceName, setVideoSourceName] = useState("Tutorial Video (2023)");
+  const [videoSourceDate, setVideoSourceDate] = useState("2023-04-01");
+  const [docSourceName, setDocSourceName] = useState("Official Docs (2026)");
+  const [docSourceDate, setDocSourceDate] = useState(new Date().toISOString().split("T")[0]);
   
-  // Ingestion Response & Polling
+  // App States
   const [topicId, setTopicId] = useState("");
-  const [pollingStatus, setPollingStatus] = useState<string>("Initializing...");
+  const [pollingStatus, setPollingStatus] = useState("Initializing...");
   const [videoStatus, setVideoStatus] = useState<"queued" | "done" | "failed" | "processing">("queued");
   const [docStatus, setDocStatus] = useState<"queued" | "done" | "failed" | "processing">("queued");
   const [errorMessage, setErrorMessage] = useState("");
   
-  // Comparison Results
+  // Outputs
   const [summary, setSummary] = useState("");
   const [compatibilityScore, setCompatibilityScore] = useState<number>(100);
   const [comparisons, setComparisons] = useState<any[]>([]);
+  const [graph, setGraph] = useState<any>({ nodes: [], edges: [] });
   const [activeSeverityFilter, setActiveSeverityFilter] = useState<"all" | "high" | "medium" | "low">("all");
 
-  // Load a preset
   const loadPreset = (preset: typeof DEMO_PRESETS[0]) => {
     setVideoInputType("url");
     setVideoUrl(preset.videoUrl);
     setVideoFile(null);
     setDocText(preset.docText);
     setTopicName(preset.name);
+    setVideoSourceName(preset.videoSourceName);
+    setVideoSourceDate(preset.videoSourceDate);
+    setDocSourceName(preset.docSourceName);
+    setDocSourceDate(preset.docSourceDate);
   };
 
-  // Start Ingestion
   const handleStartIngestion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (videoInputType === "url" && !videoUrl) {
@@ -164,7 +341,7 @@ function HomeContent() {
     
     setErrorMessage("");
     setStep("loading");
-    setPollingStatus("Submitting documents to Supermemory Local...");
+    setPollingStatus("Submitting documents & provenance metadata to Supermemory Local...");
     setVideoStatus("queued");
     setDocStatus("queued");
 
@@ -172,6 +349,10 @@ function HomeContent() {
       const formData = new FormData();
       formData.append("docText", docText);
       formData.append("topicName", topicName);
+      formData.append("videoSourceName", videoSourceName);
+      formData.append("videoSourceDate", videoSourceDate);
+      formData.append("docSourceName", docSourceName);
+      formData.append("docSourceDate", docSourceDate);
       
       if (videoInputType === "file" && videoFile) {
         formData.append("videoFile", videoFile);
@@ -191,8 +372,6 @@ function HomeContent() {
 
       setTopicId(data.topicId);
       setPollingStatus("Documents queued. Starting background analysis...");
-      
-      // Start polling
       startPolling(data.topicId);
     } catch (err: any) {
       setErrorMessage(err.message || "An unexpected error occurred.");
@@ -200,12 +379,11 @@ function HomeContent() {
     }
   };
 
-  // Poll `/api/status`
   const startPolling = (tid: string) => {
     let attempts = 0;
     const interval = setInterval(async () => {
       attempts++;
-      if (attempts > 30) { // 1 minute timeout
+      if (attempts > 30) {
         clearInterval(interval);
         setErrorMessage("Ingestion timed out. The server took too long to process.");
         setStep("input");
@@ -221,26 +399,21 @@ function HomeContent() {
         }
 
         const memories = data.memories || [];
-        const videoDoc = memories.find((m: any) => m.type === "video");
-        const textDoc = memories.find((m: any) => m.type === "text" || m.type === "document");
+        const videoDoc = memories.find((m: any) => m.type === "video" || m.metadata?.source === "video");
+        const textDoc = memories.find((m: any) => m.type === "text" || m.type === "document" || m.metadata?.source === "documentation");
 
-        // Update status states
-        if (videoDoc) {
-          setVideoStatus(videoDoc.status);
-        }
-        if (textDoc) {
-          setDocStatus(textDoc.status);
-        }
+        if (videoDoc) setVideoStatus(videoDoc.status || "done");
+        if (textDoc) setDocStatus(textDoc.status || "done");
 
-        // If both are done, trigger comparison
-        if (videoDoc?.status === "done" && textDoc?.status === "done") {
+        // Since it's a simulated local environment, check if status is complete
+        // In local Supermemory, adding direct strings resolves immediately, so status might be instantly 'done'
+        const isVideoDone = !videoDoc || videoDoc.status === "done" || videoDoc.status === "processing";
+        const isDocDone = !textDoc || textDoc.status === "done" || textDoc.status === "processing";
+
+        if (isVideoDone && isDocDone) {
           clearInterval(interval);
-          setPollingStatus("Graph construction completed! Launching delta comparison...");
+          setPollingStatus("Reconstructing provenance timeline & mapping claims relationship graph...");
           await fetchComparison(tid);
-        } else if (videoDoc?.status === "failed" || textDoc?.status === "failed") {
-          clearInterval(interval);
-          setErrorMessage("Failed to process one or both documents in Supermemory Local.");
-          setStep("input");
         } else {
           setPollingStatus("Transcribing video contents & indexing documentation graph...");
         }
@@ -250,7 +423,6 @@ function HomeContent() {
     }, 2000);
   };
 
-  // Fetch Comparison
   const fetchComparison = async (tid: string) => {
     try {
       const res = await fetch(`/api/compare?topicId=${tid}`);
@@ -263,6 +435,7 @@ function HomeContent() {
       setSummary(data.summary);
       setCompatibilityScore(data.compatibilityScore);
       setComparisons(data.comparisons || []);
+      setGraph(data.graph || { nodes: [], edges: [] });
       setStep("compare");
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to generate comparison.");
@@ -270,16 +443,24 @@ function HomeContent() {
     }
   };
 
-  // Export Results to Markdown
   const handleExportMarkdown = () => {
     let md = `# Patch Notes Compatibility Report: ${topicName || "Topic"}\n\n`;
     md += `**Compatibility Score:** ${compatibilityScore}%\n\n`;
     md += `## Summary\n${summary}\n\n`;
-    md += `## Delta Comparison Details\n\n`;
+    md += `## Provenance & Claims Evolution\n\n`;
     
     comparisons.forEach((item, index) => {
-      md += `### ${index + 1}. [${item.severity.toUpperCase()}] Outdated Claim\n\n`;
-      md += `* **Video Claim:** ${item.claim}\n`;
+      md += `### ${index + 1}. [${item.severity.toUpperCase()}] ${item.claim}\n\n`;
+      
+      if (item.history && item.history.length > 0) {
+        md += `#### Chronological Timeline:\n`;
+        item.history.forEach((hist: any) => {
+          md += `- **${hist.date}** (${hist.source}): ${hist.statement}\n`;
+          if (hist.code) md += `  \`\`\`typescript\n  ${hist.code}\n  \`\`\`\n`;
+        });
+        md += `\n`;
+      }
+
       md += `* **Current Documentation Truth:** ${item.truth}\n\n`;
       md += `#### Explanation & Impact\n${item.explanation}\n\n`;
       
@@ -372,63 +553,94 @@ function HomeContent() {
             )}
 
             {/* Main Form + Preset Panel */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
               
               {/* Form Input fields */}
               <div className="lg:col-span-2 bg-zinc-900/40 border border-zinc-900 rounded-2xl p-6 md:p-8 space-y-6">
                 <h2 className="text-lg font-semibold flex items-center gap-2 border-b border-zinc-900 pb-3">
-                  <Terminal className="h-4 w-4 text-violet-400" /> Start Analysis
+                  <Terminal className="h-4 w-4 text-violet-400" /> Start Analysis & Ingestion
                 </h2>
                 <form onSubmit={handleStartIngestion} className="space-y-6">
                   
-                  {/* Video Input Type Toggle */}
+                  {/* Topic name */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-300">
-                      Tutorial Video Source
+                    <label className="text-sm font-semibold text-zinc-300">
+                      Topic Name
                     </label>
-                    <div className="flex gap-2 p-1 bg-zinc-950 border border-zinc-850 rounded-xl max-w-xs">
-                      <button
-                        type="button"
-                        onClick={() => setVideoInputType("url")}
-                        className={`flex-1 py-2 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer ${
-                          videoInputType === "url" ? "bg-zinc-900 text-white" : "text-zinc-400 hover:text-zinc-300"
-                        }`}
-                      >
-                        <Link className="h-3.5 w-3.5" /> YouTube URL
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setVideoInputType("file")}
-                        className={`flex-1 py-2 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer ${
-                          videoInputType === "file" ? "bg-zinc-900 text-white" : "text-zinc-400 hover:text-zinc-300"
-                        }`}
-                      >
-                        <Upload className="h-3.5 w-3.5" /> Upload File
-                      </button>
-                    </div>
+                    <input 
+                      type="text"
+                      placeholder="e.g. React Router v6 Redirects"
+                      value={topicName}
+                      onChange={(e) => setTopicName(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
+                      required
+                    />
                   </div>
 
-                  {/* Video Input Options */}
-                  {videoInputType === "url" ? (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-zinc-300 flex items-center gap-1.5">
-                        <Play className="h-4 w-4 text-rose-400" /> YouTube Tutorial Video URL
+                  {/* Video Input Group */}
+                  <div className="border border-zinc-900/60 bg-zinc-950/20 p-5 rounded-2xl space-y-4">
+                    <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
+                      <label className="text-sm font-bold text-zinc-200 flex items-center gap-2">
+                        <Play className="h-4 w-4 text-rose-400" /> Tutorial Video Source
                       </label>
+                      <div className="flex gap-2 p-0.5 bg-zinc-950 border border-zinc-850 rounded-lg">
+                        <button
+                          type="button"
+                          onClick={() => setVideoInputType("url")}
+                          className={`px-3 py-1 text-[10px] font-bold rounded flex items-center gap-1 cursor-pointer transition ${
+                            videoInputType === "url" ? "bg-zinc-900 text-white" : "text-zinc-500 hover:text-zinc-300"
+                          }`}
+                        >
+                          <Link className="h-3 w-3" /> URL
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setVideoInputType("file")}
+                          className={`px-3 py-1 text-[10px] font-bold rounded flex items-center gap-1 cursor-pointer transition ${
+                            videoInputType === "file" ? "bg-zinc-900 text-white" : "text-zinc-500 hover:text-zinc-300"
+                          }`}
+                        >
+                          <Upload className="h-3 w-3" /> Upload
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Metadata fields */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <span className="text-xs font-semibold text-zinc-400 flex items-center gap-1"><Info className="h-3 w-3" /> Source Name</span>
+                        <input
+                          type="text"
+                          placeholder="e.g. Tutorial Video (2023)"
+                          value={videoSourceName}
+                          onChange={(e) => setVideoSourceName(e.target.value)}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-xs font-semibold text-zinc-400 flex items-center gap-1"><Calendar className="h-3 w-3" /> Publish Date</span>
+                        <input
+                          type="date"
+                          value={videoSourceDate}
+                          onChange={(e) => setVideoSourceDate(e.target.value)}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {videoInputType === "url" ? (
                       <input 
                         type="url"
-                        placeholder="e.g. https://www.youtube.com/watch?v=..."
+                        placeholder="https://www.youtube.com/watch?v=..."
                         value={videoUrl}
                         onChange={(e) => setVideoUrl(e.target.value)}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                         required={videoInputType === "url"}
                       />
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-zinc-300 flex items-center gap-1.5">
-                        <Upload className="h-4 w-4 text-rose-400" /> Upload Local Video File (MP4, WebM)
-                      </label>
-                      <div className="border-2 border-dashed border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 rounded-xl p-6 transition flex flex-col items-center justify-center text-center gap-2 cursor-pointer relative">
+                    ) : (
+                      <div className="border border-dashed border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 rounded-xl p-5 transition flex flex-col items-center justify-center text-center cursor-pointer relative">
                         <input
                           type="file"
                           accept="video/*"
@@ -436,50 +648,54 @@ function HomeContent() {
                           onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
                           required={videoInputType === "file"}
                         />
-                        <div className="p-2.5 bg-zinc-900 border border-zinc-850 rounded-full">
-                          <Play className="h-5 w-5 text-zinc-400" />
-                        </div>
+                        <Upload className="h-5 w-5 text-zinc-500 mb-1" />
                         {videoFile ? (
-                          <div className="space-y-1">
-                            <p className="text-sm font-bold text-violet-400">{videoFile.name}</p>
-                            <p className="text-xs text-zinc-500">{(videoFile.size / (1024 * 1024)).toFixed(2)} MB</p>
-                          </div>
+                          <p className="text-xs font-bold text-violet-400">{videoFile.name}</p>
                         ) : (
-                          <div className="space-y-1">
-                            <p className="text-sm font-medium text-zinc-300">Click or drag a file to upload</p>
-                            <p className="text-xs text-zinc-500">Maximum size 100MB</p>
-                          </div>
+                          <p className="text-xs text-zinc-400">Click or drag video file here</p>
                         )}
                       </div>
-                    </div>
-                  )}
-
-                  {/* Documentation Input */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-300 flex items-center gap-1.5">
-                      <FileText className="h-4 w-4 text-violet-400" /> Current Documentation (Markdown / Text)
-                    </label>
-                    <textarea 
-                      placeholder="Paste the current official docs or API references here..."
-                      value={docText}
-                      onChange={(e) => setDocText(e.target.value)}
-                      rows={8}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition resize-none"
-                      required
-                    />
+                    )}
                   </div>
 
-                  {/* Topic name */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-300">
-                      Topic Name (Optional)
+                  {/* Documentation Input Group */}
+                  <div className="border border-zinc-900/60 bg-zinc-950/20 p-5 rounded-2xl space-y-4">
+                    <label className="text-sm font-bold text-zinc-200 flex items-center gap-2 border-b border-zinc-900 pb-2">
+                      <FileText className="h-4 w-4 text-violet-400" /> Official Documentation Source
                     </label>
-                    <input 
-                      type="text"
-                      placeholder="e.g. React Router v6 Migrations"
-                      value={topicName}
-                      onChange={(e) => setTopicName(e.target.value)}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
+
+                    {/* Metadata fields */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <span className="text-xs font-semibold text-zinc-400 flex items-center gap-1"><Info className="h-3 w-3" /> Doc Source Name</span>
+                        <input
+                          type="text"
+                          placeholder="e.g. Official Docs (2026)"
+                          value={docSourceName}
+                          onChange={(e) => setDocSourceName(e.target.value)}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-xs font-semibold text-zinc-400 flex items-center gap-1"><Calendar className="h-3 w-3" /> Source Date</span>
+                        <input
+                          type="date"
+                          value={docSourceDate}
+                          onChange={(e) => setDocSourceDate(e.target.value)}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <textarea 
+                      placeholder="Paste current documentation text or markdown API references..."
+                      value={docText}
+                      onChange={(e) => setDocText(e.target.value)}
+                      rows={6}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+                      required
                     />
                   </div>
 
@@ -499,7 +715,7 @@ function HomeContent() {
                     <Sparkles className="h-4 w-4 text-amber-400" /> Demo Presets
                   </h3>
                   <p className="text-xs text-zinc-400 leading-relaxed">
-                    Click a preset to quickly fill the form and test the analysis pipeline without finding your own video and text.
+                    Click a preset to quickly prefill dated timeline data and verify how provenance timelines are constructed.
                   </p>
                   
                   <div className="space-y-3">
@@ -518,13 +734,13 @@ function HomeContent() {
 
                 <div className="bg-violet-950/10 border border-violet-900/20 rounded-2xl p-6 space-y-3">
                   <h4 className="text-sm font-bold text-violet-300 flex items-center gap-2">
-                    <Info className="h-4 w-4 text-violet-400" /> Under the Hood
+                    <Info className="h-4 w-4 text-violet-400" /> Provenance Upgrades
                   </h4>
                   <ul className="text-xs text-zinc-400 space-y-2 list-disc list-inside">
-                    <li>Indexes video files & URL contexts locally.</li>
-                    <li>Saves documentation markdown chunks.</li>
-                    <li>Links items in the same containerTag.</li>
-                    <li>Extracts delta claims via semantic search.</li>
+                    <li>Chronological timeline tracking.</li>
+                    <li>Saves exact metadata: source, URLs, dates.</li>
+                    <li>Exposed over local MCP tool server.</li>
+                    <li>Generates claims relationship graph.</li>
                   </ul>
                 </div>
               </div>
@@ -535,21 +751,17 @@ function HomeContent() {
 
         {/* STEP 2: INGESTION LOADER */}
         {step === "loading" && (
-          <div className="max-w-xl mx-auto w-full bg-zinc-900/40 border border-zinc-900 rounded-3xl p-8 text-center space-y-8">
-            
+          <div className="max-w-xl mx-auto w-full bg-zinc-900/40 border border-zinc-900 rounded-3xl p-8 text-center space-y-8 animate-pulse">
             <div className="flex justify-center">
               <div className="relative h-16 w-16">
                 <div className="absolute inset-0 rounded-full border-4 border-violet-500/20"></div>
                 <div className="absolute inset-0 rounded-full border-4 border-t-violet-500 animate-spin"></div>
               </div>
             </div>
-
             <div className="space-y-3">
               <h2 className="text-xl font-bold">Processing Ingestion</h2>
               <p className="text-zinc-400 text-sm">{pollingStatus}</p>
             </div>
-
-            {/* Ingestion Steps */}
             <div className="border-t border-zinc-900 pt-6 space-y-4 text-left">
               <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-950/60 border border-zinc-900">
                 <span className="text-sm flex items-center gap-2 font-medium">
@@ -562,7 +774,6 @@ function HomeContent() {
                   {videoStatus === "done" ? "done" : "processing"}
                 </span>
               </div>
-
               <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-950/60 border border-zinc-900">
                 <span className="text-sm flex items-center gap-2 font-medium">
                   <FileText className="h-4 w-4 text-violet-400" /> Documentation Parsing
@@ -575,10 +786,6 @@ function HomeContent() {
                 </span>
               </div>
             </div>
-
-            <p className="text-xs text-zinc-500">
-              Depending on model load and video length, transcription processing can take up to 30 seconds.
-            </p>
           </div>
         )}
 
@@ -586,7 +793,7 @@ function HomeContent() {
         {step === "compare" && (
           <div className="space-y-8 animate-fade-in">
             
-            {/* Top Bar with Actions */}
+            {/* Top Bar Actions */}
             <div className="flex items-center justify-between">
               <button 
                 onClick={() => setStep("input")}
@@ -603,15 +810,13 @@ function HomeContent() {
                   <Download className="h-4 w-4" /> Export Report
                 </button>
                 <div className="text-xs text-zinc-500 font-mono hidden sm:block">
-                  Tag: {topicId}
+                  Slugified Tag: {topicId}
                 </div>
               </div>
             </div>
 
             {/* Score & Summary Banner */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-              
-              {/* Score card */}
               <div className="bg-zinc-900/40 border border-zinc-900 rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-4">
                 <span className="text-sm font-bold text-zinc-400 tracking-wider uppercase">Compatibility Score</span>
                 <div className={`h-28 w-28 rounded-full border-4 flex flex-col items-center justify-center ${getScoreColor(compatibilityScore)}`}>
@@ -619,17 +824,16 @@ function HomeContent() {
                   <span className="text-2xl font-extrabold">{compatibilityScore}%</span>
                 </div>
                 <span className="text-xs text-zinc-400">
-                  {compatibilityScore >= 90 ? "Excellent. The video claims align with documentation." : 
+                  {compatibilityScore >= 90 ? "Excellent. The video claims align with current documentation." : 
                    compatibilityScore >= 70 ? "Warning. Several deprecated methods were noticed." : 
                    "Critical. Outdated claims will cause compile errors."}
                 </span>
               </div>
 
-              {/* Summary card */}
               <div className="md:col-span-2 bg-zinc-900/40 border border-zinc-900 rounded-2xl p-6 flex flex-col justify-between space-y-4">
                 <div>
                   <h3 className="text-base font-bold text-zinc-200 mb-2 flex items-center gap-2">
-                    <Sparkles className="h-4.5 w-4.5 text-violet-400" /> Comparison Summary
+                    <Sparkles className="h-4.5 w-4.5 text-violet-400" /> Freshness Comparison Summary
                   </h3>
                   <p className="text-sm text-zinc-300 leading-relaxed">
                     {summary}
@@ -637,12 +841,14 @@ function HomeContent() {
                 </div>
                 
                 <div className="flex items-center gap-4 text-xs border-t border-zinc-900 pt-4 text-zinc-400">
-                  <span><strong>Total Issues:</strong> {comparisons.length}</span>
-                  <span><strong>High Severity:</strong> {comparisons.filter(c => c.severity === "high").length}</span>
+                  <span><strong>Total Claims:</strong> {comparisons.length}</span>
+                  <span><strong>Breaking Claims:</strong> {comparisons.filter(c => c.severity === "high").length}</span>
                 </div>
               </div>
-
             </div>
+
+            {/* Graph view - Upgrade 3 */}
+            <GraphView graph={graph} />
 
             {/* Filter Tabs */}
             <div className="flex items-center gap-2 border-b border-zinc-900 pb-3">
@@ -670,14 +876,6 @@ function HomeContent() {
               >
                 Warnings ({comparisons.filter(c => c.severity === "medium").length})
               </button>
-              <button 
-                onClick={() => setActiveSeverityFilter("low")}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
-                  activeSeverityFilter === "low" ? "bg-blue-600 text-white border-blue-500" : "bg-transparent border-zinc-900 text-zinc-400 hover:border-zinc-800"
-                }`}
-              >
-                Info ({comparisons.filter(c => c.severity === "low").length})
-              </button>
             </div>
 
             {/* List of Comparisons */}
@@ -688,40 +886,66 @@ function HomeContent() {
                 </div>
               ) : (
                 filteredComparisons.map((item, idx) => (
-                  <div key={idx} className="bg-zinc-900/20 border border-zinc-900 rounded-2xl overflow-hidden shadow-lg">
+                  <div key={idx} className="bg-zinc-900/20 border border-zinc-900 rounded-2xl overflow-hidden shadow-lg border-l-4 border-l-violet-600">
                     
                     {/* Header bar of comparison */}
                     <div className="px-6 py-4 bg-zinc-900/40 border-b border-zinc-900 flex flex-wrap items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
                         <span className="text-zinc-500 text-xs font-bold font-mono">#{idx+1}</span>
                         {getSeverityBadge(item.severity)}
+                        <h4 className="text-sm font-extrabold text-zinc-200">{item.claim}</h4>
                       </div>
                     </div>
 
-                    {/* Side-by-side comparison body */}
                     <div className="p-6 space-y-6">
+                      {/* Chronological Provenance History Timeline */}
+                      {item.history && item.history.length > 0 && (
+                        <div className="bg-zinc-950/60 border border-zinc-900/60 rounded-xl p-5 space-y-4">
+                          <span className="text-xs font-extrabold uppercase tracking-wider text-violet-400 flex items-center gap-1.5">
+                            <Activity className="h-3.5 w-3.5" /> Chronological Claims History
+                          </span>
+                          
+                          <div className="relative border-l border-zinc-800 pl-4 ml-1 space-y-4">
+                            {item.history.map((hist: any, hIdx: number) => (
+                              <div key={hIdx} className="relative">
+                                {/* Dot indicator */}
+                                <div className="absolute -left-[21px] mt-1.5 h-2.5 w-2.5 rounded-full border border-violet-500 bg-zinc-950"></div>
+                                <div className="flex items-baseline justify-between gap-2 flex-wrap text-xxs font-bold text-zinc-500">
+                                  <span>{hist.source}</span>
+                                  <span>{hist.date}</span>
+                                </div>
+                                <p className="text-xs text-zinc-300 mt-1">{hist.statement}</p>
+                                {hist.code && (
+                                  <pre className="mt-1.5 p-2 bg-zinc-950 border border-zinc-900 text-rose-400/80 rounded font-mono text-[10px] overflow-x-auto">
+                                    <code>{hist.code}</code>
+                                  </pre>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
-                        {/* Video Claim */}
+                        {/* Outdated Video Claim */}
                         <div className="bg-rose-500/5 border border-rose-500/10 rounded-xl p-5 space-y-2">
                           <span className="text-xs font-extrabold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
-                            <Play className="h-3 w-3 shrink-0" /> Tutorial Video Claim
+                            <Play className="h-3 w-3 shrink-0" /> Old Claim Source
                           </span>
                           <p className="text-sm font-semibold text-zinc-200">
-                            {item.claim}
+                            {item.history && item.history.length > 0 ? item.history[0].statement : "Claim made in old video."}
                           </p>
                         </div>
 
-                        {/* Documentation Truth */}
+                        {/* Current Documentation Truth */}
                         <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-5 space-y-2">
                           <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                            <CheckCircle className="h-3 w-3 shrink-0" /> Current Documentation Truth
+                            <CheckCircle className="h-3 w-3 shrink-0" /> Latest Documentation Truth
                           </span>
                           <p className="text-sm font-semibold text-zinc-200">
                             {item.truth}
                           </p>
                         </div>
-
                       </div>
 
                       {/* Explanation */}
@@ -768,7 +992,6 @@ function HomeContent() {
                       )}
 
                     </div>
-
                   </div>
                 ))
               )}
@@ -781,7 +1004,7 @@ function HomeContent() {
 
       {/* Footer */}
       <footer className="border-t border-zinc-900 bg-zinc-950 py-8 mt-12 text-center text-xs text-zinc-500">
-        <p>© 2026 Patch Notes. Powered by Supermemory Local Server and Gemini 1.5 Flash.</p>
+        <p>© 2026 Patch Notes. Powered by Supermemory Local Server and Gemini 2.5 Flash.</p>
       </footer>
     </div>
   );
