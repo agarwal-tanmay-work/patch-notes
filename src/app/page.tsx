@@ -179,32 +179,64 @@ function GraphView({ graph }: { graph: any }) {
   // Position nodes hierarchically
   const topicNodes = graph.nodes.filter((n: any) => n.type === "topic");
   const sourceNodes = graph.nodes.filter((n: any) => n.type === "source");
-  const claimNodes = graph.nodes.filter((n: any) => n.type === "claim" || n.type === "truth");
+  const claimNodesOnly = graph.nodes.filter((n: any) => n.type === "claim");
+  const truthNodesOnly = graph.nodes.filter((n: any) => n.type === "truth");
 
   const width = 800;
   const height = 360;
   const positions: Record<string, { x: number; y: number }> = {};
 
+  // 1. Topic Nodes (y = 45)
   topicNodes.forEach((node: any) => {
     positions[node.id] = { x: width / 2, y: 45 };
   });
 
+  // 2. Source Nodes (y = 130)
   const sCount = sourceNodes.length;
   sourceNodes.forEach((node: any, idx: number) => {
     positions[node.id] = {
-      x: sCount > 1 ? 120 + (idx * (width - 240)) / (sCount - 1) : width / 2,
-      y: 155,
+      x: sCount > 1 ? 150 + (idx * (width - 300)) / (sCount - 1) : width / 2,
+      y: 130,
     };
   });
 
-  const cCount = claimNodes.length;
-  claimNodes.forEach((node: any, idx: number) => {
+  // 3. Claim Nodes (y = 215)
+  const cCount = claimNodesOnly.length;
+  claimNodesOnly.forEach((node: any, idx: number) => {
     positions[node.id] = {
-      x: cCount > 1 ? 80 + (idx * (width - 160)) / (cCount - 1) : width / 2,
-      y: 285,
+      x: cCount > 1 ? 100 + (idx * (width - 200)) / (cCount - 1) : width / 2,
+      y: 215,
     };
   });
 
+  // 4. Truth Nodes (y = 300) - Align directly under their corresponding claim nodes
+  const tCount = truthNodesOnly.length;
+  truthNodesOnly.forEach((node: any, idx: number) => {
+    const edge = graph.edges.find(
+      (e: any) => 
+        (e.from === node.id && claimNodesOnly.some((c: any) => c.id === e.to)) ||
+        (e.to === node.id && claimNodesOnly.some((c: any) => c.id === e.from))
+    );
+    
+    let targetX = width / 2;
+    if (edge) {
+      const claimId = claimNodesOnly.find((c: any) => c.id === edge.from || c.id === edge.to)?.id;
+      if (claimId && positions[claimId]) {
+        targetX = positions[claimId].x;
+      } else {
+        targetX = tCount > 1 ? 100 + (idx * (width - 200)) / (tCount - 1) : width / 2;
+      }
+    } else {
+      targetX = tCount > 1 ? 100 + (idx * (width - 200)) / (tCount - 1) : width / 2;
+    }
+
+    positions[node.id] = {
+      x: targetX,
+      y: 300,
+    };
+  });
+
+  // Fallback for any other nodes
   graph.nodes.forEach((node: any) => {
     if (!positions[node.id]) {
       positions[node.id] = { x: Math.random() * width, y: Math.random() * height };
