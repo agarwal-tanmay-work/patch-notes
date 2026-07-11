@@ -186,53 +186,47 @@ function GraphView({ graph }: { graph: any }) {
   const height = 360;
   const positions: Record<string, { x: number; y: number }> = {};
 
-  // 1. Topic Nodes (y = 45)
+  // 1. Topic Nodes (y = 40)
   topicNodes.forEach((node: any) => {
-    positions[node.id] = { x: width / 2, y: 45 };
+    positions[node.id] = { x: width / 2, y: 40 };
   });
 
-  // 2. Source Nodes (y = 130)
+  // 2. Source Nodes (y = 120)
   const sCount = sourceNodes.length;
   sourceNodes.forEach((node: any, idx: number) => {
     positions[node.id] = {
-      x: sCount > 1 ? 150 + (idx * (width - 300)) / (sCount - 1) : width / 2,
-      y: 130,
+      x: sCount > 1 ? 180 + (idx * (width - 360)) / (sCount - 1) : width / 2,
+      y: 120,
     };
   });
 
-  // 3. Claim Nodes (y = 215)
+  // 3. Claim Nodes (y = 220)
   const cCount = claimNodesOnly.length;
   claimNodesOnly.forEach((node: any, idx: number) => {
     positions[node.id] = {
-      x: cCount > 1 ? 100 + (idx * (width - 200)) / (cCount - 1) : width / 2,
-      y: 215,
+      x: cCount > 1 ? 140 + (idx * (width - 280)) / (cCount - 1) : width / 2,
+      y: 220,
     };
   });
 
-  // 4. Truth Nodes (y = 300) - Align directly under their corresponding claim nodes
+  // 4. Truth Nodes (y = 320) - Align directly under corresponding claim nodes by index to prevent overlap
   const tCount = truthNodesOnly.length;
   truthNodesOnly.forEach((node: any, idx: number) => {
-    const edge = graph.edges.find(
-      (e: any) => 
-        (e.from === node.id && claimNodesOnly.some((c: any) => c.id === e.to)) ||
-        (e.to === node.id && claimNodesOnly.some((c: any) => c.id === e.from))
-    );
-    
     let targetX = width / 2;
-    if (edge) {
-      const claimId = claimNodesOnly.find((c: any) => c.id === edge.from || c.id === edge.to)?.id;
-      if (claimId && positions[claimId]) {
-        targetX = positions[claimId].x;
-      } else {
-        targetX = tCount > 1 ? 100 + (idx * (width - 200)) / (tCount - 1) : width / 2;
+    if (idx < claimNodesOnly.length) {
+      const claimNode = claimNodesOnly[idx];
+      if (positions[claimNode.id]) {
+        targetX = positions[claimNode.id].x;
       }
     } else {
-      targetX = tCount > 1 ? 100 + (idx * (width - 200)) / (tCount - 1) : width / 2;
+      const remCount = tCount - claimNodesOnly.length;
+      const remIdx = idx - claimNodesOnly.length;
+      targetX = remCount > 1 ? 140 + (remIdx * (width - 280)) / (remCount - 1) : width / 2;
     }
 
     positions[node.id] = {
       x: targetX,
-      y: 300,
+      y: 320,
     };
   });
 
