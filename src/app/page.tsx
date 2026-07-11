@@ -474,7 +474,7 @@ function HomeContent() {
     let attempts = 0;
     const interval = setInterval(async () => {
       attempts++;
-      if (attempts > 30) {
+      if (attempts > 150) {
         clearInterval(interval);
         setErrorMessage("Ingestion timed out. The server took too long to process.");
         setStep("input");
@@ -879,9 +879,9 @@ function HomeContent() {
                   </span>
                   <span className="text-[10px] font-bold px-2.5 py-1 rounded-2xl bg-[#f3f4f6] border border-[#333333] flex items-center gap-1.5 capitalize text-black">
                     {videoStatus === "done" && <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />}
-                    {videoStatus === "queued" && <Clock className="h-3.5 w-3.5 text-[#6b7280] animate-spin" />}
+                    {(videoStatus === "queued" || videoStatus === "processing") && <Clock className="h-3.5 w-3.5 text-[#6b7280] animate-spin" />}
                     {videoStatus === "failed" && <AlertTriangle className="h-3.5 w-3.5 text-rose-600" />}
-                    {videoStatus === "done" ? "done" : "processing"}
+                    {videoStatus === "done" ? "done" : videoStatus === "failed" ? "failed" : "processing"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-2xl bg-white border border-[#333333]">
@@ -890,9 +890,9 @@ function HomeContent() {
                   </span>
                   <span className="text-[10px] font-bold px-2.5 py-1 rounded-2xl bg-[#f3f4f6] border border-[#333333] flex items-center gap-1.5 capitalize text-black">
                     {docStatus === "done" && <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />}
-                    {docStatus === "queued" && <Clock className="h-3.5 w-3.5 text-[#6b7280] animate-spin" />}
+                    {(docStatus === "queued" || docStatus === "processing") && <Clock className="h-3.5 w-3.5 text-[#6b7280] animate-spin" />}
                     {docStatus === "failed" && <AlertTriangle className="h-3.5 w-3.5 text-rose-600" />}
-                    {docStatus === "done" ? "done" : "processing"}
+                    {docStatus === "done" ? "done" : docStatus === "failed" ? "failed" : "processing"}
                   </span>
                 </div>
               </div>
