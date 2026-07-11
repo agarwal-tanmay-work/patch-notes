@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import Supermemory from "supermemory";
+import { slugify } from "@/lib/freshness";
 
 const client = new Supermemory({
   apiKey: process.env.SUPERMEMORY_API_KEY!,
@@ -13,6 +14,11 @@ export async function POST(request: Request) {
     let docText = "";
     let topicName = "";
     let videoFile: File | null = null;
+    
+    let videoSourceName = "Tutorial Video";
+    let videoSourceDate = new Date().toISOString().split("T")[0];
+    let docSourceName = "Official Docs";
+    let docSourceDate = new Date().toISOString().split("T")[0];
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData();
@@ -20,11 +26,19 @@ export async function POST(request: Request) {
       docText = (formData.get("docText") as string) || "";
       topicName = (formData.get("topicName") as string) || "";
       videoFile = formData.get("videoFile") as File;
+      videoSourceName = (formData.get("videoSourceName") as string) || videoSourceName;
+      videoSourceDate = (formData.get("videoSourceDate") as string) || videoSourceDate;
+      docSourceName = (formData.get("docSourceName") as string) || docSourceName;
+      docSourceDate = (formData.get("docSourceDate") as string) || docSourceDate;
     } else {
       const body = await request.json();
       videoUrl = body.videoUrl || "";
       docText = body.docText || "";
       topicName = body.topicName || "";
+      videoSourceName = body.videoSourceName || videoSourceName;
+      videoSourceDate = body.videoSourceDate || videoSourceDate;
+      docSourceName = body.docSourceName || docSourceName;
+      docSourceDate = body.docSourceDate || docSourceDate;
     }
 
     if (!docText) {
@@ -41,11 +55,11 @@ export async function POST(request: Request) {
       ) as any;
     }
 
-    // Generate a unique topic ID
-    const topicId = `topic_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    // Generate a slugified topic ID to allow grouping multiple versions
     const name = topicName || `Topic ${new Date().toLocaleDateString()}`;
+    const topicId = slugify(name);
 
-    console.log(`Ingesting content for topic [${name}] with ID: ${topicId}`);
+    console.log(`Ingesting content for topic [${name}] with ID (tag): ${topicId}`);
 
     // 1. Ingest the documentation text
     const docResponse = await client.add({
@@ -53,6 +67,9 @@ export async function POST(request: Request) {
       containerTag: topicId,
       metadata: {
         source: "documentation",
+        sourceName: docSourceName,
+        sourceUrl: "",
+        date: docSourceDate,
         topicName: name,
       },
     });
@@ -66,9 +83,18 @@ export async function POST(request: Request) {
         containerTag: topicId,
       });
       
-      // Let's set a custom type/metadata so that our comparison route matches it as a video
-      // Wait, client.documents.uploadFile does not support direct metadata updates on creation,
-      // but it will automatically detect the mime type or file extension.
+      // Add a text metadata entry since uploaded file metadata is limited
+      await client.add({
+        content: `Uploaded video file "${videoFile.name}" containing tutorial facts.`,
+        containerTag: topicId,
+        metadata: {
+          source: "video",
+          sourceName: videoSourceName,
+          sourceUrl: videoFile.name,
+          date: videoSourceDate,
+          topicName: name,
+        },
+      });
     } else {
       console.log(`Ingesting video URL: ${videoUrl}`);
       videoResponse = await client.add({
@@ -76,6 +102,9 @@ export async function POST(request: Request) {
         containerTag: topicId,
         metadata: {
           source: "video",
+          sourceName: videoSourceName,
+          sourceUrl: videoUrl,
+          date: videoSourceDate,
           topicName: name,
         },
       });
