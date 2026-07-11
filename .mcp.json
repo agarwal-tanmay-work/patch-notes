@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "patch-notes": {
+      "command": "npx",
+      "args": ["tsx", "C:/Users/priya/OneDrive/Desktop/patch-notes/src/mcp-server/server.ts"],
+      "env": {
+        "SUPERMEMORY_API_KEY": "sm_YOUR_SUPERMEMORY_API_KEY_HERE",
+        "SUPERMEMORY_BASE_URL": "http://localhost:6767",
+        "GEMINI_API_KEY": "YOUR_GEMINI_API_KEY_HERE"
+      }
+    }
+  }
+}
