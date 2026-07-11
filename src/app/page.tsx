@@ -594,8 +594,8 @@ function HomeContent() {
       <header className="border-b border-[#333333] bg-white sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-2xl bg-black border border-[#333333] flex items-center justify-center">
-              <FileCode className="h-5 w-5 text-white" />
+            <div className="h-9 w-9 rounded-2xl bg-white border border-[#333333] flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="Patch Notes Logo" className="h-full w-full object-cover" />
             </div>
             <div>
               <span className="font-extrabold text-sm tracking-tight text-black">PATCH NOTES</span>
