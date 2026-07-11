@@ -177,64 +177,76 @@ function GraphView({ graph }: { graph: any }) {
   }
 
   // Position nodes hierarchically
-  const topicNodes = graph.nodes.filter((n: any) => n.type === "topic");
-  const sourceNodes = graph.nodes.filter((n: any) => n.type === "source");
-  const claimNodesOnly = graph.nodes.filter((n: any) => n.type === "claim");
-  const truthNodesOnly = graph.nodes.filter((n: any) => n.type === "truth");
-
-  const width = 800;
-  const height = 360;
+  const width = 1000;
+  const height = 400;
   const positions: Record<string, { x: number; y: number }> = {};
 
-  // 1. Topic Nodes (y = 40)
-  topicNodes.forEach((node: any) => {
-    positions[node.id] = { x: width / 2, y: 40 };
+  const rows: Record<string, any[]> = {
+    topic: [],
+    source: [],
+    claim: [],
+    truth: [],
+    other: []
+  };
+
+  graph.nodes.forEach((node: any) => {
+    const type = node.type?.toLowerCase();
+    if (type === "topic") rows.topic.push(node);
+    else if (type === "source") rows.source.push(node);
+    else if (type === "claim") rows.claim.push(node);
+    else if (type === "truth") rows.truth.push(node);
+    else rows.other.push(node);
   });
 
-  // 2. Source Nodes (y = 120)
-  const sCount = sourceNodes.length;
-  sourceNodes.forEach((node: any, idx: number) => {
+  // 1. Topic Row (y = 45)
+  rows.topic.forEach((node, idx) => {
     positions[node.id] = {
-      x: sCount > 1 ? 180 + (idx * (width - 360)) / (sCount - 1) : width / 2,
-      y: 120,
+      x: rows.topic.length > 1 ? 150 + (idx * (width - 300)) / (rows.topic.length - 1) : width / 2,
+      y: 45
     };
   });
 
-  // 3. Claim Nodes (y = 220)
-  const cCount = claimNodesOnly.length;
-  claimNodesOnly.forEach((node: any, idx: number) => {
+  // 2. Source Row (y = 130)
+  rows.source.forEach((node, idx) => {
     positions[node.id] = {
-      x: cCount > 1 ? 140 + (idx * (width - 280)) / (cCount - 1) : width / 2,
-      y: 220,
+      x: rows.source.length > 1 ? 150 + (idx * (width - 300)) / (rows.source.length - 1) : width / 2,
+      y: 130
     };
   });
 
-  // 4. Truth Nodes (y = 320) - Align directly under corresponding claim nodes by index to prevent overlap
-  const tCount = truthNodesOnly.length;
-  truthNodesOnly.forEach((node: any, idx: number) => {
+  // 3. Claim Row (y = 215)
+  rows.claim.forEach((node, idx) => {
+    positions[node.id] = {
+      x: rows.claim.length > 1 ? 120 + (idx * (width - 240)) / (rows.claim.length - 1) : width / 2,
+      y: 215
+    };
+  });
+
+  // 4. Truth Row (y = 300) - Align directly under corresponding claim nodes by index
+  rows.truth.forEach((node, idx) => {
     let targetX = width / 2;
-    if (idx < claimNodesOnly.length) {
-      const claimNode = claimNodesOnly[idx];
+    if (idx < rows.claim.length) {
+      const claimNode = rows.claim[idx];
       if (positions[claimNode.id]) {
         targetX = positions[claimNode.id].x;
       }
     } else {
-      const remCount = tCount - claimNodesOnly.length;
-      const remIdx = idx - claimNodesOnly.length;
-      targetX = remCount > 1 ? 140 + (remIdx * (width - 280)) / (remCount - 1) : width / 2;
+      const remLength = rows.truth.length - rows.claim.length;
+      const remIdx = idx - rows.claim.length;
+      targetX = remLength > 1 ? 120 + (remIdx * (width - 240)) / (remLength - 1) : width / 2;
     }
-
     positions[node.id] = {
       x: targetX,
-      y: 320,
+      y: 300
     };
   });
 
-  // Fallback for any other nodes
-  graph.nodes.forEach((node: any) => {
-    if (!positions[node.id]) {
-      positions[node.id] = { x: Math.random() * width, y: Math.random() * height };
-    }
+  // 5. Other Row (y = 360)
+  rows.other.forEach((node, idx) => {
+    positions[node.id] = {
+      x: rows.other.length > 1 ? 120 + (idx * (width - 240)) / (rows.other.length - 1) : width / 2,
+      y: 360
+    };
   });
 
   const getNodeColor = (type: string) => {
