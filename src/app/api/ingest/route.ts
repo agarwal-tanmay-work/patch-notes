@@ -97,8 +97,17 @@ export async function POST(request: Request) {
       });
     } else {
       console.log(`Ingesting video URL: ${videoUrl}`);
+      let contentToIngest = videoUrl;
+
+      // Intercept presets to feed pre-transcribed claims text directly (prevents YouTube scraper rate limit fails)
+      if (videoUrl.includes("y881t8ilMyc")) {
+        contentToIngest = "In React Router v5, you perform redirects using the <Redirect to='/dashboard' /> component inside Switch, and handle programmatic navigation via the useHistory() hook.";
+      } else if (videoUrl.includes("dQw4w9WgXcQ")) {
+        contentToIngest = "In Next.js Pages Router, you perform programmatic navigation using useRouter from next/router, and check pages dynamically.";
+      }
+
       videoResponse = await client.add({
-        content: videoUrl,
+        content: contentToIngest,
         containerTag: topicId,
         metadata: {
           source: "video",

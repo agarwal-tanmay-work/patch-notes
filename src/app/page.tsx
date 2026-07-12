@@ -496,8 +496,18 @@ function HomeContent() {
         if (videoDoc) setVideoStatus(videoDoc.status || "done");
         if (textDoc) setDocStatus(textDoc.status || "done");
 
-        const isVideoDone = !videoDoc || videoDoc.status === "done" || videoDoc.status === "processing";
-        const isDocDone = !textDoc || textDoc.status === "done" || textDoc.status === "processing";
+        const isVideoFailed = videoDoc && videoDoc.status === "failed";
+        const isDocFailed = textDoc && textDoc.status === "failed";
+
+        if (isVideoFailed || isDocFailed) {
+          clearInterval(interval);
+          setErrorMessage("Ingestion failed. One of the sources failed to be indexed inside Supermemory.");
+          setStep("input");
+          return;
+        }
+
+        const isVideoDone = !videoDoc || videoDoc.status === "done";
+        const isDocDone = !textDoc || textDoc.status === "done";
 
         if (isVideoDone && isDocDone) {
           clearInterval(interval);
