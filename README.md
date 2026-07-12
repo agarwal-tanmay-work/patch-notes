@@ -115,4 +115,4 @@ You can query Patch Notes' facts directly inside your favorite AI coding assista
 ---
 
 ## 🎥 Demo Video
-[Watch the 3-minute video presentation](https://youtube.com/placeholder-demo-link)
+[Watch the demo video presentation](https://www.loom.com/share/3dce3530338144db9d0f01957656734e)
