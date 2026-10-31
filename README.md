@@ -49,7 +49,7 @@ npm install
 ### 4. Configure Environment Variables
 Create a `.env.local` file in the root of the project:
 ```env
-SUPERMEMORY_API_KEY=sm_jnNpbt8zsALUqAJpyZZYd1_vZoQdujWsl7sINc7Dqx2sIm5F63B6VHIRi73ZOOSHJmdxHsw5UFfZNWQ0j9Np12U
+SUPERMEMORY_API_KEY=your_supermemory_api_key_here
 SUPERMEMORY_BASE_URL=http://localhost:6767
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
@@ -80,7 +80,7 @@ You can query Patch Notes' facts directly inside your favorite AI coding assista
       "command": "npx",
       "args": ["tsx", "C:/Users/priya/OneDrive/Desktop/patch-notes/src/mcp-server/server.ts"],
       "env": {
-        "SUPERMEMORY_API_KEY": "sm_jnNpbt8zsALUqAJpyZZYd1_vZoQdujWsl7sINc7Dqx2sIm5F63B6VHIRi73ZOOSHJmdxHsw5UFfZNWQ0j9Np12U",
+        "SUPERMEMORY_API_KEY": "your_supermemory_api_key_here",
         "SUPERMEMORY_BASE_URL": "http://localhost:6767",
         "GEMINI_API_KEY": "your_gemini_api_key_here"
       }
@@ -97,7 +97,7 @@ You can query Patch Notes' facts directly inside your favorite AI coding assista
       "command": "npx",
       "args": ["tsx", "C:/Users/priya/OneDrive/Desktop/patch-notes/src/mcp-server/server.ts"],
       "env": {
-        "SUPERMEMORY_API_KEY": "sm_jnNpbt8zsALUqAJpyZZYd1_vZoQdujWsl7sINc7Dqx2sIm5F63B6VHIRi73ZOOSHJmdxHsw5UFfZNWQ0j9Np12U",
+        "SUPERMEMORY_API_KEY": "your_supermemory_api_key_here",
         "SUPERMEMORY_BASE_URL": "http://localhost:6767",
         "GEMINI_API_KEY": "your_gemini_api_key_here"
       }
